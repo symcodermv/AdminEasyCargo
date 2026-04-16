@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<title>EasyCargo — Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#0a0f1e;min-height:100vh;overflow-x:hidden;color:white}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0f1e;padding:1rem}
+#loginScreen::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(243,156,18,.07),transparent 60%);pointer-events:none}
+.l-wrap{width:100%;max-width:400px;position:relative;z-index:1}
+.l-card{background:#141b2b;border-radius:26px;border:1px solid #2a3a55;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.l-top{background:linear-gradient(135deg,#0e1524,#1a2747);padding:1.6rem;text-align:center;border-bottom:1px solid #253241}
+.l-ico{width:58px;height:58px;background:rgba(243,156,18,.13);border:2px solid rgba(243,156,18,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;color:#f39c12;font-size:1.55rem}
+.l-top h2{color:white;font-size:1.3rem;font-weight:800}
+.l-top h2 em{color:#f39c12;font-style:normal}
+.l-top p{color:rgba(255,255,255,.3);font-size:.68rem;margin-top:3px;font-family:monospace}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(243,156,18,.1);border:1px solid rgba(243,156,18,.3);border-radius:25px;padding:4px 12px;color:#f39c12;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-top:8px}
+.l-body{padding:1.3rem}
+.fg{margin-bottom:.88rem}
+.fg label{display:block;color:rgba(255,255,255,.55);font-size:.74rem;margin-bottom:.3rem;font-weight:600}
+.fi{width:100%;padding:11px 15px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:24px;color:white;font-size:.84rem;outline:none;transition:.2s;font-family:inherit}
+.fi:focus{border-color:#f39c12;background:#23324a;box-shadow:0 0 0 3px rgba(243,156,18,.09)}
+.fi::placeholder{color:rgba(255,255,255,.18)}
+select.fi option{background:#1e2a3a}
+textarea.fi{border-radius:12px;resize:vertical;min-height:58px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:400px){.fr{grid-template-columns:1fr}}
+.btn{padding:11px 17px;border:none;border-radius:33px;font-weight:700;cursor:pointer;font-size:.84rem;transition:.2s;width:100%;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-gold{background:#f39c12;color:#1e2a3a;box-shadow:0 5px 16px rgba(243,156,18,.27)}
+.btn-gold:hover{background:#e67e22;transform:translateY(-2px);color:white}
+.btn-sec{background:#2e3f55;color:white}
+.btn-sec:hover{background:#3a4f6a}
+.msg{padding:9px 13px;border-radius:12px;margin-bottom:.8rem;font-size:.76rem;text-align:center;display:none}
+.msg.ok{background:rgba(39,174,96,.12);border:1px solid #27ae60;color:#2ecc71;display:block}
+.msg.err{background:rgba(231,76,60,.12);border:1px solid #e74c3c;color:#e74c3c;display:block}
+#adminApp{display:none;min-height:100vh;background:#0a0f1e}
+.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:999}
+.ovl.show{display:block}
+.sidebar{width:255px;background:#141b2b;height:100vh;position:fixed;left:-255px;top:0;transition:.3s;z-index:1000;border-right:1px solid #2a3a55;overflow-y:auto;display:flex;flex-direction:column}
+.sidebar.open{left:0}
+.s-hd{padding:.95rem;border-bottom:1px solid #253241;display:flex;align-items:center;gap:.7rem}
+.s-av{width:37px;height:37px;background:rgba(243,156,18,.12);border:2px solid rgba(243,156,18,.26);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#f39c12;font-size:.9rem;flex-shrink:0}
+.s-hd h3{color:white;font-size:.84rem;font-weight:700}
+.s-hd p{color:#f39c12;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.s-nav{flex:1;padding:.28rem 0}
+.s-lbl{padding:.4rem 1rem;font-size:.56rem;font-weight:700;color:#f39c12;letter-spacing:1.5px;text-transform:uppercase}
+.s-item{padding:.74rem 1rem;display:flex;align-items:center;gap:.72rem;color:rgba(255,255,255,.58);cursor:pointer;transition:.15s;font-size:.78rem;border-left:3px solid transparent}
+.s-item:hover{background:#1e2a3a;color:white}
+.s-item.active{background:#1e2a3a;border-left-color:#f39c12;color:#f39c12}
+.s-item i{width:15px;color:#f39c12;font-size:.78rem}
+.s-div{height:1px;background:#253241;margin:.3rem .88rem}
+.s-foot{padding:.7rem 1rem;border-top:1px solid #253241}
+.top-bar{background:#141b2b;padding:0 .88rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid #253241;position:sticky;top:0;z-index:200;height:52px}
+.menu-toggle{background:none;border:none;color:white;font-size:1.22rem;cursor:pointer;width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.menu-toggle:hover{background:#1e2a3a}
+.tb-title{flex:1;font-size:.86rem;font-weight:800;color:white;display:flex;align-items:center;gap:5px}
+.tb-title i{color:#f39c12}
+.admin-chip{display:flex;align-items:center;gap:4px;background:rgba(243,156,18,.09);border:1px solid rgba(243,156,18,.2);border-radius:14px;padding:3px 9px;color:#f39c12;font-size:.6rem;font-weight:700}
+.tb-nm{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.5);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.main{padding:.85rem;padding-bottom:1.5rem}
+.page{display:none}.page.active{display:block}
+.sg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:.85rem}
+@media(min-width:600px){.sg{grid-template-columns:repeat(4,1fr)}}
+.sc{background:#141b2b;border-radius:16px;padding:.82rem;border:1px solid #2e4057;display:flex;align-items:center;gap:.6rem}
+.si{width:37px;height:37px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.si.c{background:rgba(52,152,219,.13);color:#3498db}
+.si.g{background:rgba(39,174,96,.13);color:#27ae60}
+.si.a{background:rgba(243,156,18,.13);color:#f39c12}
+.si.r{background:rgba(231,76,60,.1);color:#e74c3c}
+.si.b{background:rgba(52,152,219,.1);color:#3498db}
+.sv{font-size:1.25rem;font-weight:800;color:white;line-height:1}
+.sl{font-size:.58rem;color:rgba(255,255,255,.36);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;font-family:monospace}
+.card{background:#141b2b;border-radius:17px;padding:.9rem;margin-bottom:.85rem;border:1px solid #2e3f55}
+.c-hd{display:flex;align-items:center;gap:7px;margin-bottom:.78rem;padding-bottom:.72rem;border-bottom:1px solid #253241}
+.c-ico{width:27px;height:27px;background:rgba(243,156,18,.1);border:1px solid rgba(243,156,18,.2);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#f39c12;flex-shrink:0}
+.c-hd h3{font-size:.82rem;font-weight:700;color:white}
+.tbl-s{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:560px;font-size:.72rem}
+th{padding:7px 9px;text-align:left;font-size:.58rem;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid #253241;background:rgba(255,255,255,.02);font-family:monospace}
+td{padding:8px 9px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.7);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02);color:white}
+.badge{display:inline-block;padding:2px 7px;border-radius:12px;font-size:.58rem;font-weight:700;font-family:monospace}
+.b-placed{background:rgba(243,156,18,.13);color:#f39c12;border:1px solid rgba(243,156,18,.18)}
+.b-proc{background:rgba(52,152,219,.13);color:#3498db;border:1px solid rgba(52,152,219,.18)}
+.b-trans{background:rgba(142,68,173,.13);color:#9b59b6;border:1px solid rgba(142,68,173,.18)}
+.b-out{background:rgba(230,126,34,.13);color:#e67e22;border:1px solid rgba(230,126,34,.18)}
+.b-del{background:rgba(39,174,96,.13);color:#27ae60;border:1px solid rgba(39,174,96,.18)}
+.b-rev{background:rgba(243,156,18,.1);color:#f39c12;border:1px solid rgba(243,156,18,.14)}
+.b-paid{background:rgba(39,174,96,.1);color:#27ae60;border:1px solid rgba(39,174,96,.14)}
+.b-pnd{background:rgba(231,76,60,.1);color:#e74c3c;border:1px solid rgba(231,76,60,.14)}
+.b-norm{background:rgba(255,255,255,.06);color:rgba(255,255,255,.48);border:1px solid #2e3f55}
+.b-exp{background:rgba(52,152,219,.1);color:#3498db;border:1px solid rgba(52,152,219,.14)}
+.b-boat{background:rgba(52,152,219,.13);color:#3498db;border:1px solid rgba(52,152,219,.18)}
+.b-speed{background:rgba(243,156,18,.13);color:#f39c12;border:1px solid rgba(243,156,18,.18)}
+.b-pend-a{background:rgba(243,156,18,.12);color:#f39c12;border:1px solid rgba(243,156,18,.18)}
+.b-active-u{background:rgba(39,174,96,.1);color:#27ae60;border:1px solid rgba(39,174,96,.14)}
+.b-blocked{background:rgba(231,76,60,.1);color:#e74c3c;border:1px solid rgba(231,76,60,.14)}
+.a-row{display:flex;gap:4px;flex-wrap:wrap}
+.a-btn{padding:3px 8px;border-radius:10px;font-size:.58rem;font-weight:700;cursor:pointer;border:1px solid;transition:.15s;font-family:inherit}
+.a-btn:hover{filter:brightness(1.12)}
+.ab-stat{background:rgba(52,152,219,.11);border-color:rgba(52,152,219,.2);color:#3498db}
+.ab-app{background:rgba(39,174,96,.11);border-color:rgba(39,174,96,.2);color:#27ae60}
+.ab-del{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.18);color:#e74c3c}
+.ab-view{background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.2);color:#f39c12}
+.ab-edit{background:rgba(142,68,173,.1);border-color:rgba(142,68,173,.18);color:#9b59b6}
+.ab-grant{background:rgba(39,174,96,.11);border-color:rgba(39,174,96,.2);color:#27ae60}
+.ab-block{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.18);color:#e74c3c}
+.fgsm{display:flex;flex-direction:column;gap:3px}
+.fgsm label{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.36);letter-spacing:.8px;text-transform:uppercase;font-family:monospace}
+.fgsm input,.fgsm select,.fgsm textarea{padding:8px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;transition:.2s;font-family:inherit}
+.fgsm textarea{border-radius:10px;resize:vertical}
+.fgsm input:focus,.fgsm select:focus,.fgsm textarea:focus{border-color:#f39c12;box-shadow:0 0 0 2px rgba(243,156,18,.07)}
+.fgsm select option{background:#1e2a3a}
+.p-form{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.85rem}
+@media(min-width:500px){.p-form{grid-template-columns:1fr 1fr 1fr 1fr auto}}
+.btn-add{padding:8px 12px;background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;font-size:.76rem;font-weight:800;cursor:pointer;transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.btn-add:hover{background:#e67e22;transform:translateY(-1px);color:white}
+.btn-add.sec{background:#2e3f55;color:rgba(255,255,255,.65)}
+.btn-add.sec:hover{background:#3a4f6a;color:white}
+/* IMAGE CARD GRID */
+.img-card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.5rem}
+@media(min-width:500px){.img-card-grid{grid-template-columns:repeat(4,1fr)}}
+.img-card-item{background:#1b2537;border:1px solid #2e3f55;border-radius:13px;overflow:hidden;position:relative}
+.img-card-item img{width:100%;height:55px;object-fit:cover;display:block}
+.img-card-item .no-img{width:100%;height:55px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#f39c12;background:#1a2535}
+.img-card-item .card-lbl{padding:.4rem .5rem;font-size:.66rem;font-weight:700;color:white;line-height:1.2}
+.img-card-item .card-sub{font-size:.58rem;color:rgba(255,255,255,.36);padding:0 .5rem .42rem}
+.card-rm{position:absolute;top:4px;right:4px;background:rgba(231,76,60,.88);border:none;color:white;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:.55rem;display:flex;align-items:center;justify-content:center}
+.card-rm:hover{background:#e74c3c}
+.p-item{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:#1b2537;border:1px solid #2e3f55;border-radius:11px;margin-bottom:5px;transition:.15s;flex-wrap:wrap;gap:6px}
+.p-item:hover{border-color:rgba(243,156,18,.2)}
+.p-item .rng{font-weight:700;color:white;font-size:.78rem}
+.p-item .amt{font-family:monospace;font-weight:700;color:#f39c12;font-size:.8rem}
+/* EXPRESS HOUR ITEM */
+.hr-item{display:flex;align-items:center;gap:9px;padding:9px 12px;background:#1b2537;border:1px solid rgba(243,156,18,.15);border-radius:11px;margin-bottom:5px}
+.hr-item .hr-num{width:38px;height:38px;background:rgba(243,156,18,.15);border:1px solid rgba(243,156,18,.3);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.hr-item .hr-num span{font-size:.95rem;font-weight:800;color:#f39c12;line-height:1}
+.hr-item .hr-num small{font-size:.52rem;color:rgba(243,156,18,.6)}
+.hr-item .hr-info{flex:1}
+.hr-item .hr-info .hn{font-weight:700;color:white;font-size:.8rem}
+.hr-item .hr-info .hp{font-family:monospace;color:#f39c12;font-size:.75rem;margin-top:1px}
+.isl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.isl-tag{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.2);color:#3498db;padding:2px 7px;border-radius:9px;font-size:.62rem;font-weight:700;font-family:monospace;display:inline-flex;align-items:center;gap:3px}
+.isl-tag button{background:none;border:none;color:rgba(52,152,219,.55);cursor:pointer;font-size:.6rem;padding:0;line-height:1}
+.isl-tag button:hover{color:#e74c3c}
+.u-item{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;background:#1b2537;border:1px solid #2e3f55;border-radius:11px;margin-bottom:5px;transition:.15s;flex-wrap:wrap;gap:6px}
+.u-nm{font-weight:700;color:white;font-size:.8rem}
+.u-em{font-family:monospace;font-size:.65rem;color:rgba(255,255,255,.36)}
+.r-chip{padding:2px 8px;border-radius:10px;font-family:monospace;font-size:.58rem;font-weight:800}
+.rc-a{background:rgba(243,156,18,.13);border:1px solid rgba(243,156,18,.18);color:#f39c12}
+.rc-u{background:rgba(52,152,219,.1);border:1px solid rgba(52,152,219,.14);color:#3498db}
+.rc-s{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.18);color:#27ae60}
+/* Social link item */
+.social-item{display:flex;align-items:center;gap:9px;padding:8px 11px;background:#1b2537;border:1px solid #2e3f55;border-radius:11px;margin-bottom:5px}
+.social-item .si-icon{width:30px;height:30px;background:rgba(243,156,18,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#f39c12;flex-shrink:0}
+.social-item .si-info{flex:1;min-width:0}
+.social-item .si-pl{font-weight:700;color:white;font-size:.78rem}
+.social-item .si-url{font-size:.65rem;color:rgba(255,255,255,.35);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srch-row{display:flex;gap:6px;margin-bottom:.85rem}
+.srch-row input{flex:1;padding:9px 13px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.8rem;outline:none;transition:.2s;font-family:inherit}
+.srch-row input:focus{border-color:#f39c12;box-shadow:0 0 0 2px rgba(243,156,18,.07)}
+.srch-row input::placeholder{color:rgba(255,255,255,.18)}
+.btn-srch{padding:9px 14px;background:#f39c12;color:#1e2a3a;border:none;border-radius:22px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s}
+.btn-srch:hover{background:#e67e22}
+.t-res{background:#1b2537;border:1px solid #2e3f55;border-radius:12px;padding:.85rem;margin-bottom:7px}
+.t-igrid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-bottom:8px}
+@media(min-width:480px){.t-igrid{grid-template-columns:repeat(3,1fr)}}
+.t-cell{background:#1e2a3a;border:1px solid #2a3a55;border-radius:8px;padding:7px 9px}
+.t-cell .tl{font-size:.54rem;color:rgba(255,255,255,.26);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;font-family:monospace}
+.t-cell .tv{font-size:.74rem;font-weight:600;color:white}
+.df-row{display:flex;gap:6px;align-items:flex-end;margin-bottom:.85rem;flex-wrap:wrap}
+.df-row .fgsm{min-width:130px}
+.chart-box{position:relative;height:205px}
+.slide-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1b2537;border:1px solid #2e3f55;border-radius:11px;margin-bottom:5px}
+.slide-item img{width:46px;height:33px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid #2e3f55}
+.slide-item .si-url{font-size:.68rem;color:rgba(255,255,255,.42);font-family:monospace;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.84);align-items:flex-end;justify-content:center;z-index:2000;padding:0}
+.modal-overlay.show{display:flex}
+@media(min-width:540px){.modal-overlay{align-items:center;padding:1rem}}
+.modal-box{background:#141b2b;border-radius:21px 21px 0 0;width:100%;max-width:460px;max-height:92vh;overflow-y:auto;border:1px solid #2e3f55;border-bottom:none;padding:1.1rem;animation:slideUp .3s ease}
+@media(min-width:540px){.modal-box{border-radius:21px;border-bottom:1px solid #2e3f55;animation:fadeIn .25s ease}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;padding-bottom:.75rem;border-bottom:1px solid #253241}
+.modal-title{color:white;font-size:.9rem;font-weight:700;display:flex;align-items:center;gap:6px}
+.modal-title i{color:#f39c12}
+.close-btn{background:rgba(255,255,255,.07);border:none;color:white;font-size:1.15rem;cursor:pointer;width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.modal-btns{display:flex;gap:7px;margin-top:.85rem}
+.file-zone{border:2px dashed rgba(243,156,18,.22);border-radius:13px;padding:.85rem;text-align:center;cursor:pointer;background:#1b2537;position:relative;transition:.2s;margin-top:4px}
+.file-zone:hover{border-color:rgba(243,156,18,.48);background:#223040}
+.file-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-zone i{font-size:1.25rem;color:#f39c12;display:block;margin-bottom:4px}
+.file-zone span{font-size:.7rem;color:rgba(255,255,255,.36)}
+.slip-img{max-width:100%;border-radius:10px;margin:8px 0;border:1px solid #2e3f55}
+.prev-img{width:100%;max-height:110px;object-fit:cover;border-radius:10px;margin-top:6px;display:none;border:1px solid #2e3f55}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-16px);z-index:3000;max-width:295px;width:92%;background:#1e2a3a;border-radius:14px;padding:.75rem .85rem;border:1px solid #2e4057;box-shadow:0 12px 40px rgba(0,0,0,.6);display:flex;align-items:center;gap:7px;opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(39,174,96,.3);background:linear-gradient(135deg,#0d2218,#142b1e)}
+.toast.err{border-color:rgba(231,76,60,.3);background:linear-gradient(135deg,#230d0d,#2b1212)}
+.toast.info{border-color:rgba(243,156,18,.24)}
+.t-ico{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.toast.ok .t-ico{background:rgba(39,174,96,.18);color:#27ae60}
+.toast.err .t-ico{background:rgba(231,76,60,.18);color:#e74c3c}
+.toast.info .t-ico{background:rgba(243,156,18,.1);color:#f39c12}
+.t-msg{flex:1;font-size:.74rem;color:white;font-weight:500}
+.empty-s{text-align:center;padding:1.6rem 1rem;color:rgba(255,255,255,.26)}
+.empty-s i{font-size:1.85rem;display:block;margin-bottom:.42rem;opacity:.18}
+.empty-s p{font-size:.76rem}
+p,span,div,h1,h2,h3,h4,label{color:inherit}
+a{color:#f39c12;text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="l-wrap">
+  <div class="l-card">
+    <div class="l-top">
+      <div class="l-ico"><i class="fas fa-shield-halved"></i></div>
+      <h2>Easy<em>Cargo</em></h2>
+      <p>// admin control panel</p>
+      <div class="admin-badge"><i class="fas fa-crown"></i> ADMINISTRATOR</div>
+    </div>
+    <div class="l-body">
+      <div id="loginMsg"></div>
+      <div class="fg"><label>Username or Email</label><input class="fi" type="text" id="aUsr" placeholder="Admin username…"></div>
+      <div class="fg"><label>Password</label><input class="fi" type="password" id="aPwd" placeholder="••••••••"></div>
+      <button class="btn btn-gold" id="aLoginBtn"><i class="fas fa-lock"></i> Access Admin Panel</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+  <div class="ovl" id="sOver"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="s-hd"><div class="s-av"><i class="fas fa-shield-halved"></i></div><div><h3 id="sNm">Admin</h3><p>ADMINISTRATOR</p></div></div>
+    <div class="s-nav">
+      <div class="s-lbl">OVERVIEW</div>
+      <div class="s-item active" onclick="goPage('dashboard')"><i class="fas fa-gauge-high"></i> Dashboard</div>
+      <div class="s-item" onclick="goPage('revenue')"><i class="fas fa-chart-line"></i> Revenue</div>
+      <div class="s-lbl">RECORDS</div>
+      <div class="s-item" onclick="goPage('records')"><i class="fas fa-database"></i> All Records</div>
+      <div class="s-item" onclick="goPage('track')"><i class="fas fa-location-crosshairs"></i> Track Delivery</div>
+      <div class="s-lbl">CONFIGURATION</div>
+      <div class="s-item" onclick="goPage('homepage')"><i class="fas fa-home"></i> Home Page</div>
+      <div class="s-item" onclick="goPage('driverhome')"><i class="fas fa-motorcycle"></i> Driver Home Page</div>
+      <div class="s-item" onclick="goPage('loginpage')"><i class="fas fa-sign-in-alt"></i> Login Page</div>
+      <div class="s-item" onclick="goPage('pickups')"><i class="fas fa-map-marker-alt"></i> Pickup Locations</div>
+      <div class="s-item" onclick="goPage('dellocs')"><i class="fas fa-map-pin"></i> Delivery Locations</div>
+      <div class="s-item" onclick="goPage('boats')"><i class="fas fa-ship"></i> Boats &amp; Islands</div>
+      <div class="s-item" onclick="goPage('speedboats')"><i class="fas fa-bolt"></i> Speed Boats</div>
+      <div class="s-item" onclick="goPage('cargotypes')"><i class="fas fa-box"></i> Cargo Types</div>
+      <div class="s-item" onclick="goPage('expresshrs')"><i class="fas fa-clock"></i> Express Hours</div>
+      <div class="s-item" onclick="goPage('prices')"><i class="fas fa-weight-hanging"></i> Weight Ranges</div>
+      <div class="s-item" onclick="goPage('capacity')"><i class="fas fa-box-open"></i> Daily Capacity</div>
+      <div class="s-item" onclick="goPage('telegram')"><i class="fab fa-telegram-plane"></i> Telegram Alerts</div>
+      <div class="s-item" onclick="goPage('drivers')"><i class="fas fa-motorcycle"></i> Drivers</div>
+      <div class="s-item" onclick="goPage('users')"><i class="fas fa-users"></i> Users &amp; Access</div>
+      <div class="s-div"></div>
+    </div>
+    <div class="s-foot"><button class="btn btn-sec" style="font-size:.76rem;padding:8px" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Sign Out</button></div>
+  </div>
+
+  <div class="top-bar">
+    <button class="menu-toggle" onclick="toggleSB()"><i class="fas fa-bars"></i></button>
+    <div class="tb-title"><i class="fas fa-truck"></i><span id="pgTitle">Dashboard</span></div>
+    <div class="tb-nm" id="aNm">Admin</div>
+    <div class="admin-chip"><i class="fas fa-crown"></i> ADMIN</div>
+  </div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="sg" id="statsG"></div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-clock-rotate-left"></i></div><h3>Recent Deliveries</h3></div><div class="tbl-s"><table><thead><tr><th>Reference</th><th>Customer</th><th>Mode</th><th>Route</th><th>Type</th><th>Price</th><th>Status</th><th>Payment</th><th>Actions</th></tr></thead><tbody id="recTB"></tbody></table></div></div>
+    </div>
+
+    <!-- REVENUE -->
+    <div class="page" id="page-revenue">
+      <div class="df-row">
+        <div class="fgsm"><label>Start Date</label><input type="date" id="rStart"></div>
+        <div class="fgsm"><label>End Date</label><input type="date" id="rEnd"></div>
+        <button class="btn-add" id="applyRev">Apply</button>
+        <button class="btn-add sec" id="resetRev">Reset</button>
+      </div>
+      <div class="sg" id="revSG"></div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-chart-bar"></i></div><h3>Revenue — Last 14 Days</h3></div><div class="chart-box"><canvas id="revChart"></canvas></div></div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-receipt"></i></div><h3>Payment Records</h3></div><div class="tbl-s"><table><thead><tr><th>Reference</th><th>Customer</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="payTB"></tbody></table></div></div>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="page" id="page-records">
+      <div class="srch-row"><input type="text" id="recSrch" placeholder="Search name, contact, reference…"><button class="btn-srch" id="recSrchBtn"><i class="fas fa-search"></i></button></div>
+      <div class="card"><div class="tbl-s"><table><thead><tr><th>Reference</th><th>Customer</th><th>Contact</th><th>Mode</th><th>Route</th><th>Type</th><th>Wt/Dur</th><th>Price</th><th>Del.Date</th><th>Status</th><th>Payment</th><th>Invoice</th><th>Created</th><th>Actions</th></tr></thead><tbody id="allRecTB"></tbody></table></div></div>
+    </div>
+
+    <!-- TRACK -->
+    <div class="page" id="page-track">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-magnifying-glass"></i></div><h3>Search Delivery</h3></div>
+        <div class="srch-row"><input type="text" id="trkSrch" placeholder="Contact or reference…"><button class="btn-srch" id="trkSrchBtn"><i class="fas fa-search"></i></button></div>
+        <div id="trkResult"></div>
+      </div>
+    </div>
+
+    <!-- HOME PAGE -->
+    <div class="page" id="page-homepage">
+
+      <!-- HOME SLIDES -->
+      <div class="card">
+        <div class="c-hd"><div class="c-ico"><i class="fas fa-image"></i></div><h3>Home Slides</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.75rem;line-height:1.5">Add background slideshow images for the home page. Use Option 1 (URL) or Option 2 (Upload).</p>
+
+        <!-- OPTION 1: URL -->
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-link"></i> Option 1 — Add by URL</div>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="slideUrl" placeholder="https://example.com/image.jpg" style="flex:1;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+            <button class="btn-add" onclick="addSlideUrl()"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        </div>
+
+        <!-- OPTION 2: UPLOAD -->
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-cloud-arrow-up"></i> Option 2 — Upload Image</div>
+          <label style="display:block;background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;padding:9px 16px;font-size:.8rem;font-weight:800;cursor:pointer;text-align:center;transition:.2s" onmouseover="this.style.background='#e67e22'" onmouseout="this.style.background='#f39c12'">
+            <i class="fas fa-upload" style="margin-right:5px"></i><span id="slideImgFNlbl">Choose Image to Upload</span>
+            <input type="file" id="slideImgFile" accept="image/*" style="display:none" onchange="uploadSlide(this)">
+          </label>
+        </div>
+
+        <div id="slideList"></div>
+      </div>
+
+      <!-- HOW-TO IMAGES -->
+      <div class="card">
+        <div class="c-hd"><div class="c-ico"><i class="fas fa-question-circle"></i></div><h3>How-To Guide Images</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.75rem;line-height:1.5">Upload step-by-step guide images shown in the "How It Works" panel on the home page. Each image = one step.</p>
+
+        <!-- OPTION 1: URL -->
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-link"></i> Option 1 — Add by URL</div>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="howImgUrl" placeholder="https://example.com/guide-step.jpg" style="flex:1;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+            <button class="btn-add" onclick="addHowImgUrl()"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        </div>
+
+        <!-- OPTION 2: UPLOAD -->
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-cloud-arrow-up"></i> Option 2 — Upload Image</div>
+          <label style="display:block;background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;padding:9px 16px;font-size:.8rem;font-weight:800;cursor:pointer;text-align:center;transition:.2s" onmouseover="this.style.background='#e67e22'" onmouseout="this.style.background='#f39c12'">
+            <i class="fas fa-upload" style="margin-right:5px"></i><span id="howImgFNlbl">Choose Guide Image</span>
+            <input type="file" id="howImgFile" accept="image/*" style="display:none" onchange="uploadHowImg(this)">
+          </label>
+        </div>
+
+        <div id="howImgList"></div>
+      </div>
+
+      <!-- TAGLINE -->
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-pen"></i></div><h3>Home Tagline</h3></div>
+        <div class="fr" style="gap:7px">
+          <input type="text" id="taglineInput" class="fi" placeholder="Your trusted cargo partner…" style="border-radius:22px">
+          <button class="btn-add" onclick="saveTagline()"><i class="fas fa-save"></i> Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRIVER HOME PAGE -->
+    <div class="page" id="page-driverhome">
+
+      <!-- DRIVER SLIDES -->
+      <div class="card">
+        <div class="c-hd"><div class="c-ico"><i class="fas fa-motorcycle"></i></div><h3>Driver Home Slides</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.75rem;line-height:1.5">Background slideshow images for the Driver Portal home page. Leave empty to use the same slides as the main home page.</p>
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-link"></i> Option 1 — Add by URL</div>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="drvSlideUrl" placeholder="https://example.com/image.jpg" style="flex:1;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+            <button class="btn-add" onclick="addDrvSlideUrl()"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        </div>
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-cloud-arrow-up"></i> Option 2 — Upload Image</div>
+          <label style="display:block;background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;padding:9px 16px;font-size:.8rem;font-weight:800;cursor:pointer;text-align:center;transition:.2s" onmouseover="this.style.background='#e67e22'" onmouseout="this.style.background='#f39c12'">
+            <i class="fas fa-upload" style="margin-right:5px"></i><span id="drvSlideImgLbl">Choose Image to Upload</span>
+            <input type="file" id="drvSlideImgFile" accept="image/*" style="display:none" onchange="uploadDrvSlide(this)">
+          </label>
+        </div>
+        <div id="drvSlideList"></div>
+      </div>
+
+      <!-- DRIVER HOW-TO IMAGES -->
+      <div class="card">
+        <div class="c-hd"><div class="c-ico"><i class="fas fa-question-circle"></i></div><h3>Driver "How It Works" Guide Images</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.75rem;line-height:1.5">Step-by-step guide images shown when a driver taps "How It Works" on the driver portal home page.</p>
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-link"></i> Option 1 — Add by URL</div>
+          <div style="display:flex;gap:7px">
+            <input type="text" id="drvHowUrl" placeholder="https://example.com/driver-guide.jpg" style="flex:1;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+            <button class="btn-add" onclick="addDrvHowUrl()"><i class="fas fa-plus"></i> Add</button>
+          </div>
+        </div>
+        <div style="background:#1a2535;border:1px solid #2e3f55;border-radius:13px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.7rem;font-weight:700;color:#f39c12;margin-bottom:.6rem;display:flex;align-items:center;gap:5px"><i class="fas fa-cloud-arrow-up"></i> Option 2 — Upload Image</div>
+          <label style="display:block;background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;padding:9px 16px;font-size:.8rem;font-weight:800;cursor:pointer;text-align:center;transition:.2s" onmouseover="this.style.background='#e67e22'" onmouseout="this.style.background='#f39c12'">
+            <i class="fas fa-upload" style="margin-right:5px"></i><span id="drvHowImgLbl">Choose Guide Image</span>
+            <input type="file" id="drvHowImgFile" accept="image/*" style="display:none" onchange="uploadDrvHowImg(this)">
+          </label>
+        </div>
+        <div id="drvHowImgList"></div>
+      </div>
+
+      <!-- DRIVER TAGLINE -->
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-pen"></i></div><h3>Driver Page Tagline</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.5">The subtitle shown on the driver portal home page under the heading.</p>
+        <div class="fr" style="gap:7px">
+          <input type="text" id="drvTaglineInput" class="fi" placeholder="Deliver with EasyCargo and earn…" style="border-radius:22px">
+          <button class="btn-add" onclick="saveDrvTagline()"><i class="fas fa-save"></i> Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGIN PAGE SETTINGS -->
+    <div class="page" id="page-loginpage">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-image"></i></div><h3>Logo Image (under brand name)</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.5">Upload a PNG logo to display below "EasyCargo" on the login page. Recommended: transparent PNG, max height 48px.</p>
+        <div class="file-zone" style="margin-bottom:.7rem"><input type="file" id="loginLogoFile" accept="image/*" onchange="uploadLoginLogo(this)"><i class="fas fa-image"></i><span id="loginLogoFN">Upload logo PNG</span></div>
+        <img id="loginLogoPrev" class="prev-img" alt="">
+        <div id="loginLogoStatus" style="margin-top:.5rem;font-size:.74rem;color:rgba(255,255,255,.42)"></div>
+        <div class="fr" style="gap:7px;margin-top:.6rem">
+          <button class="btn-add sec" onclick="removeLoginLogo()"><i class="fas fa-trash"></i> Remove Logo</button>
+        </div>
+      </div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-share-alt"></i></div><h3>Social Platform Links</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.5">Add social media links shown under the brand name on the login page.</p>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Platform</label>
+            <select id="socialPlatform">
+              <option value="facebook">Facebook</option>
+              <option value="instagram">Instagram</option>
+              <option value="telegram">Telegram</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="twitter">Twitter / X</option>
+              <option value="youtube">YouTube</option>
+              <option value="tiktok">TikTok</option>
+              <option value="viber">Viber</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="fgsm"><label>URL</label><input type="text" id="socialUrl" placeholder="https://…"></div>
+          <button class="btn-add" id="addSocialBtn"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="socialList"></div>
+      </div>
+    </div>
+
+    <!-- PICKUP LOCATIONS -->
+    <div class="page" id="page-pickups">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-plus"></i></div><h3>Add Pickup Location</h3></div>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Name</label><input type="text" id="locName" placeholder="e.g. Male Post Office"></div>
+          <div class="fgsm"><label>Type</label><select id="locType"><option value="standard">Standard</option><option value="address">Address Required</option><option value="postal">Post / Pickpost</option></select></div>
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Photo</label>
+          <div class="file-zone"><input type="file" id="locImg" accept="image/*" onchange="previewI(this,'locPrev','locImgFN')"><i class="fas fa-image"></i><span id="locImgFN">Tap to upload photo</span></div>
+          <img id="locPrev" class="prev-img" alt="">
+        </div>
+        <button class="btn-add" id="addLocBtn"><i class="fas fa-plus"></i> Add Location</button>
+        <div style="margin-top:.7rem" id="locList"></div>
+      </div>
+    </div>
+
+    <!-- BOATS -->
+    <div class="page" id="page-boats">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-plus"></i></div><h3>Add Boat</h3></div>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Name</label><input type="text" id="boatName" placeholder="e.g. Fasthuri"></div>
+          <div class="fgsm"><label>Route</label><input type="text" id="boatRoute" placeholder="Male – South Atoll"></div>
+          </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Atolls (Enter or comma)</label>
+          <div id="boatAtollWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('boatAtollIn').focus()">
+            <div id="boatAtollTagsWrap" style="display:contents"></div>
+            <input id="boatAtollIn" type="text" placeholder="Add atoll…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+          </div>
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Boat Photo</label>
+          <div class="file-zone"><input type="file" id="boatImg" accept="image/*" onchange="previewI(this,'boatPrev','boatImgFN')"><i class="fas fa-ship"></i><span id="boatImgFN">Tap to upload photo</span></div>
+          <img id="boatPrev" class="prev-img" alt="">
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Islands (Enter or comma)</label>
+          <div id="islInputWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('islIn').focus()">
+            <div id="islTagsWrap" style="display:contents"></div>
+            <input id="islIn" type="text" placeholder="Add island…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+          </div>
+        </div>
+        <button class="btn-add" id="addBoatBtn"><i class="fas fa-plus"></i> Add Boat</button>
+        <div style="margin-top:.7rem" id="boatList"></div>
+      </div>
+    </div>
+
+    <!-- SPEED BOATS -->
+    <div class="page" id="page-speedboats">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-bolt"></i></div><h3>Add Speed Boat</h3></div>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Name</label><input type="text" id="sbName" placeholder="e.g. Thunder Express"></div>
+          <div class="fgsm"><label>Route</label><input type="text" id="sbRoute" placeholder="Male – North Atoll"></div>
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Atolls (Enter or comma)</label>
+          <div id="sbAtollWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('sbAtollIn').focus()">
+            <div id="sbAtollTagsWrap" style="display:contents"></div>
+            <input id="sbAtollIn" type="text" placeholder="Add atoll…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+          </div>
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Speed Boat Photo</label>
+          <div class="file-zone"><input type="file" id="sbImg" accept="image/*" onchange="previewI(this,'sbPrev','sbImgFN')"><i class="fas fa-bolt"></i><span id="sbImgFN">Tap to upload photo</span></div>
+          <img id="sbPrev" class="prev-img" alt="">
+        </div>
+        <div class="fgsm" style="margin-bottom:.6rem"><label>Islands (Enter or comma)</label>
+          <div id="sbIslInputWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('sbIslIn').focus()">
+            <div id="sbIslTagsWrap" style="display:contents"></div>
+            <input id="sbIslIn" type="text" placeholder="Add island…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+          </div>
+        </div>
+        <button class="btn-add" id="addSBBtn"><i class="fas fa-plus"></i> Add Speed Boat</button>
+        <div style="margin-top:.7rem" id="sbList"></div>
+      </div>
+    </div>
+
+    <!-- CARGO TYPES -->
+    <div class="page" id="page-cargotypes">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-plus"></i></div><h3>Add Cargo Type</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.65rem;line-height:1.5">Name must be <strong style="color:#f39c12">Express Cargo</strong> for express hourly types. Normal cargo shows weight ranges. Express cargo shows hourly duration list.</p>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Type Name</label><input type="text" id="ctName" placeholder="e.g. Express Cargo"></div>
+          <div class="fgsm"><label>Icon</label><select id="ctKey"><option value="normal">Box (Normal)</option><option value="express">Bolt (Express)</option><option value="fragile">Fragile</option><option value="oversized">Oversized</option><option value="custom">Custom</option></select></div>
+          <div class="fgsm"><label>ETA Description</label><input type="text" id="ctEta" placeholder="e.g. Same day"></div>
+          <div class="fgsm"><label>Price Type</label><select id="ctPriceType"><option value="flat">Flat (Normal)</option><option value="hourly">Per Hour (Express)</option></select></div>
+          <div class="fgsm"><label>Description</label><input type="text" id="ctDesc" placeholder="e.g. 2-3 business days"></div>
+          <div class="fgsm"><label>Sort Order</label><input type="number" id="ctOrder" placeholder="1" min="1"></div>
+          <button class="btn-add" id="addCtBtn"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="ctList"></div>
+      </div>
+    </div>
+
+    <!-- EXPRESS HOURS -->
+    <div class="page" id="page-expresshrs">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-clock"></i></div><h3>Express Hourly Options</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.65rem;line-height:1.5">Add hourly duration options linked to a specific Express Cargo type. Users see the matching hours when they select that cargo type.</p>
+        <div class="p-form" style="grid-template-columns:1fr 1fr 1fr 1fr auto">
+          <div class="fgsm"><label>Cargo Type</label><select id="hrCargoType" style="padding:8px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;width:100%;font-family:inherit"><option value="">Select express type…</option></select></div>
+          <div class="fgsm"><label>Hours (number)</label><input type="number" id="hrHours" placeholder="1" min="1"></div>
+          <div class="fgsm"><label>Label</label><input type="text" id="hrLabel" placeholder="e.g. 1 Hour"></div>
+          <div class="fgsm"><label>Price (MVR)</label><input type="number" id="hrPrice" placeholder="200" min="0"></div>
+          <button class="btn-add" id="addHrBtn"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="hrList"></div>
+      </div>
+    </div>
+
+    <!-- WEIGHT RANGES -->
+    <div class="page" id="page-prices">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-plus"></i></div><h3>Add Weight Range</h3></div>
+        <div class="p-form">
+          <div class="fgsm"><label>Min kg</label><input type="number" id="pMin" placeholder="0" min="0" step="0.1"></div>
+          <div class="fgsm"><label>Max kg</label><input type="number" id="pMax" placeholder="5" min="0" step="0.1"></div>
+          <div class="fgsm"><label>Price MVR</label><input type="number" id="pVal" placeholder="100" min="0"></div>
+          <button class="btn-add" id="addPBtn"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="pList"></div>
+      </div>
+    </div>
+
+    <!-- DAILY CAPACITY -->
+    <div class="page" id="page-capacity">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-box-open"></i></div><h3>Daily Package Capacity</h3></div>
+        <p style="font-size:.76rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.6">Set 0 to disable the limit. Users see a capacity bar and cannot submit when full.</p>
+        <div class="fr" style="gap:7px">
+          <div class="fgsm"><label>Max Packages Per Day</label><input type="number" id="capInput" placeholder="50" min="0"></div>
+          <button class="btn-add" id="saveCapBtn"><i class="fas fa-save"></i> Save</button>
+        </div>
+        <div id="capStatus" style="margin-top:.7rem;font-size:.76rem;color:rgba(255,255,255,.42)"></div>
+      </div>
+    </div>
+
+    <!-- DRIVERS -->
+    <div class="page" id="page-drivers">
+      <div class="sg" id="drvStatsG" style="margin-bottom:.85rem"></div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-motorcycle"></i></div><h3>Driver Registrations</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.5">Drivers register via the Driver Portal. Approve them here, set their delivery amount, and assign deliveries. Drivers can accept or pass on assignments.</p>
+        <div id="drvList"></div>
+      </div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-truck-fast"></i></div><h3>Assign Delivery to Driver</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.5">Select a delivery and assign to one or all active drivers. First driver to accept gets it.</p>
+        <div class="srch-row"><input type="text" id="assignSrch" placeholder="Search reference or customer…"><button class="btn-srch" id="assignSrchBtn"><i class="fas fa-search"></i></button></div>
+        <div id="assignList"></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-user-plus"></i></div><h3>Add User</h3></div>
+        <div class="fr">
+          <div class="fg"><label>Username</label><input class="fi" type="text" id="nUsr" placeholder="Username"></div>
+          <div class="fg"><label>Email</label><input class="fi" type="email" id="nEml" placeholder="email@…"></div>
+          <div class="fg"><label>Contact</label><input class="fi" type="tel" id="nCnt" placeholder="7XXXXXXX"></div>
+          <div class="fg"><label>Password</label><input class="fi" type="password" id="nPwd" placeholder="Password"></div>
+          <div class="fg"><label>Role</label><select class="fi" id="nRole" onchange="document.getElementById('permWrap').style.display=this.value==='staff'?'block':'none'"><option value="user">User</option><option value="staff">Staff</option><option value="admin">Admin</option></select></div>
+        </div>
+        <div id="permWrap" style="display:none;margin-bottom:.65rem">
+          <div style="font-size:.65rem;font-weight:700;color:#f39c12;margin-bottom:.5rem;letter-spacing:.5px;text-transform:uppercase">Staff Permissions</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pDashboard" checked style="accent-color:#f39c12"> Dashboard</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pRecords" checked style="accent-color:#f39c12"> Records</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pTrack" checked style="accent-color:#f39c12"> Track</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pRevenue" style="accent-color:#f39c12"> Revenue</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pStatus" checked style="accent-color:#f39c12"> Update Status</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pApprove" style="accent-color:#f39c12"> Approve Payment</label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="pConfig" style="accent-color:#f39c12"> Configuration</label>
+          </div>
+        </div>
+        <button class="btn-add" id="addUBtn"><i class="fas fa-plus"></i> Add User</button>
+      </div>
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-users"></i></div><h3>All Users</h3></div><div id="uList"></div></div>
+    </div>
+
+
+
+    <!-- TELEGRAM ALERTS -->
+    <div class="page" id="page-telegram">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fab fa-telegram-plane"></i></div><h3>Telegram Alert Settings</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.6">When a user submits a payment, an automatic message is sent to the configured Telegram number/chat. The bot token and chat ID are pre-configured. Use this page to update the target chat if needed.</p>
+        <div style="background:rgba(52,152,219,.08);border:1px solid rgba(52,152,219,.2);border-radius:12px;padding:.85rem;margin-bottom:.75rem">
+          <div style="font-size:.76rem;font-weight:700;color:#3498db;margin-bottom:.4rem"><i class="fas fa-check-circle" style="margin-right:4px"></i>Currently Active</div>
+          <div style="font-size:.74rem;color:rgba(255,255,255,.55)">Alerts are sent automatically to <strong style="color:white">965429044</strong> on every new payment submission.</div>
+        </div>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Bot Token</label><input type="text" id="tgToken" placeholder="Bot token…" style="padding:8px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;width:100%;font-family:monospace"></div>
+          <div class="fgsm"><label>Chat ID / Phone</label><input type="text" id="tgChat" placeholder="965429044 or chat id…" style="padding:8px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;width:100%;font-family:monospace"></div>
+          <button class="btn-add" id="saveTgBtn"><i class="fas fa-save"></i> Save</button>
+        </div>
+        <div id="tgStatus" style="font-size:.74rem;color:rgba(255,255,255,.42)"></div>
+        <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid #253241">
+          <div style="font-size:.74rem;color:rgba(255,255,255,.42);margin-bottom:.5rem">Test the alert by clicking below:</div>
+          <button class="btn-add sec" id="tgTestBtn"><i class="fab fa-telegram-plane"></i> Send Test Message</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERY LOCATIONS -->
+    <div class="page" id="page-dellocs">
+      <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-map-pin"></i></div><h3>Delivery Locations</h3></div>
+        <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.65rem;line-height:1.5">These locations appear as chip buttons in the user delivery form when "Cargo" mode is selected.</p>
+        <div class="fr" style="gap:7px;margin-bottom:.6rem">
+          <div class="fgsm"><label>Location Name</label><input type="text" id="dlName" placeholder="e.g. Addu City"></div>
+          <button class="btn-add" id="addDlBtn" style="align-self:flex-end"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div id="dlList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDIT SPEED BOAT MODAL -->
+<div class="modal-overlay" id="esbMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-bolt"></i> Edit Speed Boat</div><button class="close-btn" id="esbClose"><i class="fas fa-times"></i></button></div>
+  <div class="fg"><label>Name</label><input class="fi" type="text" id="esbName"></div>
+  <div class="fg"><label>Route</label><input class="fi" type="text" id="esbRoute"></div>
+  <div class="fg"><label>Atolls (Enter or comma)</label>
+    <div id="esbAtollWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('esbAtollIn').focus()">
+      <div id="esbAtollTagsWrap" style="display:contents"></div>
+      <input id="esbAtollIn" type="text" placeholder="Add atoll…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+    </div>
+  </div>
+  <div class="fg"><label>Photo</label>
+    <div class="file-zone"><input type="file" id="esbImgFile" accept="image/*" onchange="previewI(this,'esbPrev','esbImgFN')"><i class="fas fa-bolt"></i><span id="esbImgFN">Tap to replace</span></div>
+    <img id="esbPrev" class="prev-img" alt="">
+  </div>
+  <div class="fg"><label>Islands</label>
+    <div id="esbIslWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('esbIslIn').focus()">
+      <div id="esbIslTagsWrap" style="display:contents"></div>
+      <input id="esbIslIn" type="text" placeholder="Add island…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+    </div>
+  </div>
+  <div class="fg"><label>Status</label><select class="fi" id="esbActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="esbCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="esbConfirm"><i class="fas fa-save"></i> Save</button></div>
+</div>
+</div>
+
+<!-- ASSIGN DRIVER MODAL -->
+<div class="modal-overlay" id="assignMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-motorcycle"></i> Assign Driver</div><button class="close-btn" id="assignClose"><i class="fas fa-times"></i></button></div>
+  <div id="assignDelInfo" style="background:#1a2535;border-radius:11px;padding:.75rem;margin-bottom:.8rem;font-size:.76rem;color:rgba(255,255,255,.6)"></div>
+  <div class="fgsm" style="margin-bottom:.75rem"><label>Driver Amount (MVR)</label><input type="number" id="drvAmtInput" placeholder="e.g. 50" min="0" style="padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.82rem;outline:none;width:100%;font-family:inherit"></div>
+  <div class="fgsm" style="margin-bottom:.75rem"><label>Assign To</label>
+    <select id="drvAssignSel" style="padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.82rem;outline:none;width:100%;font-family:inherit">
+      <option value="all">All Active Drivers (First to accept gets it)</option>
+    </select>
+  </div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="assignCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="assignConfirm"><i class="fas fa-paper-plane"></i> Assign</button></div>
+</div>
+</div>
+
+<!-- SET DRIVER AMOUNT MODAL -->
+<div class="modal-overlay" id="drvAmtMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-coins"></i> Set Driver Amount</div><button class="close-btn" id="drvAmtClose"><i class="fas fa-times"></i></button></div>
+  <div id="drvAmtName" style="font-size:.82rem;color:white;margin-bottom:.7rem;font-weight:700"></div>
+  <div class="fgsm"><label>Default Amount per Delivery (MVR)</label><input type="number" id="drvAmtVal" placeholder="e.g. 50" min="0" style="padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.82rem;outline:none;width:100%;font-family:inherit"></div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="drvAmtCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="drvAmtConfirm"><i class="fas fa-save"></i> Save</button></div>
+</div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal-overlay" id="statMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-pen-to-square"></i> Update Status</div><button class="close-btn" id="statClose"><i class="fas fa-times"></i></button></div>
+  <div class="fgsm" style="margin-bottom:.85rem"><label>Status</label>
+    <select id="statSel" style="padding:10px;border-radius:15px;background:#1e2a3a;border:1px solid #2e3f55;color:white;font-size:.84rem;width:100%;outline:none">
+      <option>Order Placed</option><option>Processing</option><option>In Transit</option><option>Out for Delivery</option><option>Delivered</option>
+    </select>
+  </div>
+  <div id="proofBox" style="display:none"><div class="fgsm"><label>Delivery Proof (Required)</label><div class="file-zone"><input type="file" id="proofFile" accept="image/*"><i class="fas fa-cloud-arrow-up"></i><span id="proofFN">Tap to attach proof</span></div></div></div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="statCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="statConfirm"><i class="fas fa-check"></i> Update</button></div>
+</div>
+</div>
+
+<!-- SLIP MODAL -->
+<div class="modal-overlay" id="slipMod">
+<div class="modal-box"><div class="modal-hd"><div class="modal-title"><i class="fas fa-image"></i> Payment Slip</div><button class="close-btn" id="slipClose"><i class="fas fa-times"></i></button></div><img id="slipImg" class="slip-img" alt="slip"><div class="modal-btns"><button class="btn btn-sec" id="slipClose2">Close</button></div></div>
+</div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="euMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-user-pen"></i> Edit User</div><button class="close-btn" id="euClose"><i class="fas fa-times"></i></button></div>
+  <div class="fr">
+    <div class="fg"><label>Username</label><input class="fi" type="text" id="euUsr"></div>
+    <div class="fg"><label>Email</label><input class="fi" type="email" id="euEml"></div>
+    <div class="fg"><label>Contact</label><input class="fi" type="tel" id="euCnt"></div>
+    <div class="fg"><label>New Password</label><input class="fi" type="password" id="euPwd" placeholder="Blank = keep"></div>
+    <div class="fg"><label>Role</label><select class="fi" id="euRole"><option value="user">User</option><option value="staff">Staff</option><option value="admin">Admin</option></select></div>
+  </div>
+  <div id="euPermWrap" style="display:none;margin-bottom:.65rem;padding-top:.75rem;border-top:1px solid #253241">
+    <div style="font-size:.65rem;font-weight:700;color:#f39c12;margin-bottom:.5rem;letter-spacing:.5px;text-transform:uppercase">Staff Permissions</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epDashboard" style="accent-color:#f39c12"> Dashboard</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epRecords" style="accent-color:#f39c12"> Records</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epTrack" style="accent-color:#f39c12"> Track</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epRevenue" style="accent-color:#f39c12"> Revenue</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epStatus" style="accent-color:#f39c12"> Update Status</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epApprove" style="accent-color:#f39c12"> Approve Payment</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;cursor:pointer"><input type="checkbox" id="epConfig" style="accent-color:#f39c12"> Configuration</label>
+    </div>
+  </div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="euCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="euConfirm"><i class="fas fa-save"></i> Save</button></div>
+</div>
+</div>
+
+<!-- EDIT BOAT MODAL -->
+<div class="modal-overlay" id="ebMod">
+<div class="modal-box">
+  <div class="modal-hd"><div class="modal-title"><i class="fas fa-ship"></i> Edit Boat</div><button class="close-btn" id="ebClose"><i class="fas fa-times"></i></button></div>
+  <div class="fg"><label>Name</label><input class="fi" type="text" id="ebName"></div>
+  <div class="fg"><label>Route</label><input class="fi" type="text" id="ebRoute"></div>
+  <div class="fg"><label>Atolls (Enter or comma)</label>
+    <div id="ebAtollWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('ebAtollIn').focus()">
+      <div id="ebAtollTagsWrap" style="display:contents"></div>
+      <input id="ebAtollIn" type="text" placeholder="Add atoll…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+    </div>
+  </div>
+  <div class="fg"><label>Photo</label>
+    <div class="file-zone"><input type="file" id="ebImgFile" accept="image/*" onchange="previewI(this,'ebPrev','ebImgFN')"><i class="fas fa-ship"></i><span id="ebImgFN">Tap to replace</span></div>
+    <img id="ebPrev" class="prev-img" alt="">
+  </div>
+  <div class="fg"><label>Islands</label>
+    <div id="ebIslWrap" style="background:#1e2a3a;border:1px solid #2e3f55;border-radius:13px;padding:6px 10px;min-height:38px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;cursor:text" onclick="$('ebIslIn').focus()">
+      <div id="ebIslTagsWrap" style="display:contents"></div>
+      <input id="ebIslIn" type="text" placeholder="Add island…" style="border:none;background:transparent;color:white;font-size:.78rem;outline:none;min-width:85px;flex:1">
+    </div>
+  </div>
+  <div class="fg"><label>Status</label><select class="fi" id="ebActive"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+  <div class="modal-btns"><button class="btn btn-sec" style="flex:1" id="ebCancel">Cancel</button><button class="btn btn-gold" style="flex:2" id="ebConfirm"><i class="fas fa-save"></i> Save</button></div>
+</div>
+</div>
+
+<div class="toast" id="toast"><div class="t-ico"><i class="fas fa-info-circle"></i></div><div class="t-msg" id="tTxt"></div></div>
+
+<script>
+const fbCfg={apiKey:"AIzaSyCZA8Z9AJcC97CyQUZVCRsljTuYBfxjHMw",authDomain:"easycargo-9c0cd.firebaseapp.com",databaseURL:"https://easycargo-9c0cd-default-rtdb.firebaseio.com",projectId:"easycargo-9c0cd",storageBucket:"easycargo-9c0cd.firebasestorage.app",messagingSenderId:"51689325187",appId:"1:51689325187:web:c65cb8fb0af2241a4c91b6"};
+firebase.initializeApp(fbCfg);
+const db=firebase.database();
+const ADMIN_USER='Admin',ADMIN_PASS='8555';
+let me=null,allD=[],allU=[],allDrivers=[],allP=[],allN=[],allBoats=[],allSB=[],allPickups=[],allCT=[],allExpHrs=[],allDL=[],siteSettings={},eDelId=null,eBoatId=null,eSBId=null,rvChart=null,newBIsls=[],ebIsls=[],newSBIsls=[],esbIsls=[],eUserId=null,assignDelId=null;
+const $=id=>document.getElementById(id);
+function toArr(d){return d?(Array.isArray(d)?d:Object.values(d)):[]}
+function fmtD(d){return d?new Date(d).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}):'—'}
+function genInvNo(){return`INV-${Date.now().toString().slice(-7)}`}
+function showToast(m,t='info'){const el=$('toast');el.className=`toast ${t}`;$('tTxt').textContent=m;el.querySelector('.t-ico').innerHTML=t==='ok'?'<i class="fas fa-check-circle"></i>':t==='err'?'<i class="fas fa-times-circle"></i>':'<i class="fas fa-info-circle"></i>';el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000)}
+function showMsg(id,msg,t){const el=$(id);el.className=`msg ${t}`;el.textContent=msg;setTimeout(()=>el.className='msg',4000)}
+function sBadge(s){const m={'Order Placed':'b-placed','Processing':'b-proc','In Transit':'b-trans','Out for Delivery':'b-out','Delivered':'b-del'};return`<span class="badge ${m[s]||'b-placed'}">${s}</span>`}
+function pBadge(s){const m={'under_review':['b-rev','Reviewing'],'paid':['b-paid','Paid'],'pending':['b-pnd','Pending']};const[c,l]=m[s]||['b-pnd','Pending'];return`<span class="badge ${c}">${l}</span>`}
+function renderIslTags(wrap,isls,onRm){wrap.innerHTML=isls.map((i,idx)=>`<span class="isl-tag">${i}<button onclick="${onRm}(${idx})" type="button">×</button></span>`).join('')}
+
+// LOGIN
+$('aLoginBtn').onclick=async()=>{
+  const u=$('aUsr').value.trim(),p=$('aPwd').value;if(!u||!p){showMsg('loginMsg','Fill all fields','err');return}
+  if((u===ADMIN_USER||u.toLowerCase()===ADMIN_USER.toLowerCase())&&p===ADMIN_PASS){me={username:ADMIN_USER,email:'admin@easycargo.mv',role:'admin',id:0};localStorage.setItem('ecAdmin',JSON.stringify(me));enterAdmin();return}
+  const arr=toArr((await db.ref('users').once('value')).val());
+  const f=arr.find(x=>(x.username===u||x.email===u)&&x.password===p&&(x.role==='admin'||x.role==='staff'));
+  if(!f){showMsg('loginMsg','Invalid admin credentials','err');return}
+  me=f;localStorage.setItem('ecAdmin',JSON.stringify(f));enterAdmin()
+};
+window.addEventListener('DOMContentLoaded',()=>{const s=localStorage.getItem('ecAdmin');if(s){me=JSON.parse(s);enterAdmin()}});
+function enterAdmin(){
+  $('loginScreen').style.display='none';$('adminApp').style.display='block';
+  $('aNm').textContent=me.username;$('sNm').textContent=me.username;
+  // Restrict sidebar for staff
+  if(me.role==='staff'){
+    const p=me.permissions||{};
+    const show={dashboard:p.dashboard,revenue:p.revenue,records:p.records,track:p.track,homepage:p.config,loginpage:p.config,pickups:p.config,dellocs:p.config,boats:p.config,cargotypes:p.config,expresshrs:p.config,prices:p.config,capacity:p.config,telegram:p.config,users:false};
+    document.querySelectorAll('.s-item').forEach(item=>{
+      const pg=item.getAttribute('onclick')?.match(/goPage\('(\w+)'\)/)?.[1];
+      if(pg&&!show[pg])item.style.display='none';
+    });
+  }
+  initFB()
+}
+function initFB(){
+  db.ref('cargoDeliveries').on('value',snap=>{allD=toArr(snap.val());refresh()});
+  db.ref('users').on('value',snap=>{allU=toArr(snap.val());loadUsers()});
+  db.ref('cargoPriceRanges').on('value',snap=>{allP=toArr(snap.val());loadPrices()});
+  db.ref('notifications').on('value',snap=>{allN=toArr(snap.val())});
+  db.ref('boats').on('value',snap=>{allBoats=toArr(snap.val());loadBoatList()});
+  db.ref('pickupLocations').on('value',snap=>{allPickups=toArr(snap.val());loadLocList()});
+  db.ref('cargoTypes').on('value',snap=>{allCT=toArr(snap.val());loadCtList();loadHrList()});
+  db.ref('expressHours').on('value',snap=>{allExpHrs=toArr(snap.val());loadHrList()});
+  db.ref('siteSettings').on('value',snap=>{siteSettings=snap.val()||{};loadHomePageSettings();loadLoginPageSettings()});
+  db.ref('deliveryLocations').on('value',snap=>{allDL=toArr(snap.val());loadDlList()});
+  db.ref('drivers').on('value',snap=>{allDrivers=toArr(snap.val());loadDriverPage()});
+  db.ref('speedBoats').on('value',snap=>{allSB=toArr(snap.val());loadSBList()});
+}
+function refresh(){const a=document.querySelector('.page.active');if(!a)return;const id=a.id;if(id==='page-dashboard')loadDash();else if(id==='page-records')loadRecords();else if(id==='page-revenue')loadRevenue()}
+function toggleSB(){$('sidebar').classList.toggle('open');$('sOver').classList.toggle('show')}
+function closeSB(){$('sidebar').classList.remove('open');$('sOver').classList.remove('show')}
+$('sOver').onclick=closeSB;
+window.goPage=function(pg){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.s-item').forEach(i=>i.classList.remove('active'));$('page-'+pg).classList.add('active');const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',driverhome:'Driver Home Page',loginpage:'Login Page',pickups:'Pickup Locations',dellocs:'Delivery Locations',boats:'Boats & Islands',speedboats:'Speed Boats',cargotypes:'Cargo Types',expresshrs:'Express Hours',prices:'Weight Ranges',capacity:'Daily Capacity',telegram:'Telegram Alerts',users:'Users & Access',drivers:'Drivers'};$('pgTitle').textContent=names[pg]||pg;if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='dellocs')loadDlList();else if(pg==='telegram')loadTgPage();else if(pg==='drivers')loadDriverPage();else if(pg==='driverhome')loadDriverHomePage();closeSB()};
+
+// DASHBOARD
+function loadDash(){const total=allD.length,delv=allD.filter(d=>d.status==='Delivered').length,pend=allD.filter(d=>d.paymentStatus==='under_review').length,rev=allD.filter(d=>d.paymentStatus==='paid').reduce((s,d)=>s+(parseFloat(d.deliveryPrice)||0),0);const today=new Date().toISOString().split('T')[0],tc=allD.filter(d=>(d.createdAt||'').startsWith(today)).length;$('statsG').innerHTML=`<div class="sc"><div class="si c"><i class="fas fa-truck"></i></div><div><div class="sv">${total}</div><div class="sl">TOTAL</div></div></div><div class="sc"><div class="si g"><i class="fas fa-circle-check"></i></div><div><div class="sv">${delv}</div><div class="sl">DELIVERED</div></div></div><div class="sc"><div class="si a"><i class="fas fa-hourglass-half"></i></div><div><div class="sv">${pend}</div><div class="sl">PENDING PAY</div></div></div><div class="sc"><div class="si r"><i class="fas fa-coins"></i></div><div><div class="sv">${rev.toFixed(0)}</div><div class="sl">MVR</div></div></div><div class="sc"><div class="si b"><i class="fas fa-box-open"></i></div><div><div class="sv">${tc}</div><div class="sl">TODAY</div></div></div>`;renderTbl('recTB',[...allD].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,20),true)}
+function renderTbl(tbId,data,compact=false){const tb=$(tbId);if(!data.length){tb.innerHTML=`<tr><td colspan="14" style="text-align:center;color:rgba(255,255,255,.26);padding:1.5rem;font-size:.76rem">No records</td></tr>`;return}const canStat=me.role==='admin'||(me.permissions?.status);const canApp=me.role==='admin'||(me.permissions?.approve);tb.innerHTML=data.map(d=>`<tr><td style="font-family:monospace;font-size:.62rem;color:#f39c12">${d.referenceNumber}</td><td>${d.customerName}${d.attendedBy?`<div style="font-size:.58rem;color:#27ae60;margin-top:2px"><i class="fas fa-user-check" style="margin-right:2px"></i>${d.attendedBy}</div>`:''}</td>${!compact?`<td style="font-family:monospace;font-size:.62rem"><a href="tel:${d.customerContact}" style="color:#f39c12">${d.customerContact}</a></td>`:''}<td><span class="badge ${d.deliveryMode==='boat'?'b-boat':d.deliveryMode==='speedboat'?'b-speed':'b-norm'}">${d.deliveryMode==='boat'?'Boat':d.deliveryMode==='speedboat'?'Speed Boat':'Cargo'}</span></td><td style="font-size:.68rem">${(d.pickupLocation||'')+'→'+(d.deliveryLocation||'')}</td><td style="font-size:.68rem">${d.cargoType||'—'}</td>${!compact?`<td style="font-size:.68rem">${d.isExpress?d.selectedHrLabel||'—':d.packageWeight||'—'}</td>`:''}<td style="font-family:monospace;font-size:.68rem">${d.deliveryPrice} MVR</td>${!compact?`<td style="font-size:.65rem">${fmtD(d.deliveryDate)}</td>`:''}<td>${sBadge(d.status)}</td><td>${pBadge(d.paymentStatus)}${d.paymentSlip?` <button onclick="viewSlip('${d.paymentSlip}')" class="a-btn ab-view">Slip</button>`:''}</td>${!compact?`<td>${d.invoice?`<span class="badge b-paid">Issued</span>`:'<span style="color:rgba(255,255,255,.28);font-size:.6rem">—</span>'}</td><td style="font-size:.6rem;font-family:monospace">${fmtD(d.createdAt)}</td>`:''}<td><div class="a-row">${canStat?`<button class="a-btn ab-stat" onclick="openStat(${d.id})">Status</button>`:''} ${canApp&&d.paymentStatus==='under_review'?`<button class="a-btn ab-app" onclick="approvePay(${d.id})">Approve</button>`:''} ${me.role==='admin'?`<button class="a-btn ab-del" onclick="delD(${d.id})">Del</button>`:''}</div></td></tr>`).join('')}
+function loadRecords(f=''){let data=[...allD].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));if(f){const q=f.toLowerCase();data=data.filter(d=>d.customerName?.toLowerCase().includes(q)||d.customerContact?.includes(q)||d.referenceNumber?.toLowerCase().includes(q))}renderTbl('allRecTB',data,false)}
+$('recSrchBtn').onclick=()=>loadRecords($('recSrch').value.trim());
+$('recSrch').addEventListener('keyup',e=>{if(e.key==='Enter')loadRecords(e.target.value.trim())});
+
+function loadRevenue(s=null,e=null){let data=allD;if(s&&e)data=data.filter(d=>{const pd=d.paidAt||d.createdAt;return pd>=s&&pd<=e+'T23:59:59'});const paid=data.filter(d=>d.paymentStatus==='paid');const totalR=paid.reduce((x,d)=>x+(parseFloat(d.deliveryPrice)||0),0),pend=data.filter(d=>d.paymentStatus==='under_review').reduce((x,d)=>x+(parseFloat(d.deliveryPrice)||0),0);const today=new Date().toISOString().split('T')[0],todayR=paid.filter(d=>(d.paidAt||d.createdAt||'').startsWith(today)).reduce((x,d)=>x+(parseFloat(d.deliveryPrice)||0),0);$('revSG').innerHTML=`<div class="sc"><div class="si g"><i class="fas fa-coins"></i></div><div><div class="sv">${totalR.toFixed(0)}</div><div class="sl">TOTAL MVR</div></div></div><div class="sc"><div class="si c"><i class="fas fa-sun"></i></div><div><div class="sv">${todayR.toFixed(0)}</div><div class="sl">TODAY</div></div></div><div class="sc"><div class="si a"><i class="fas fa-hourglass-half"></i></div><div><div class="sv">${pend.toFixed(0)}</div><div class="sl">PENDING</div></div></div><div class="sc"><div class="si r"><i class="fas fa-receipt"></i></div><div><div class="sv">${paid.length}</div><div class="sl">PAID</div></div></div>`;const days=14,lbls=[],vals=[];for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().split('T')[0];lbls.push(ds.slice(5));vals.push(paid.filter(x=>(x.paidAt||x.createdAt||'').startsWith(ds)).reduce((s,x)=>s+(parseFloat(x.deliveryPrice)||0),0))}if(rvChart)rvChart.destroy();rvChart=new Chart($('revChart').getContext('2d'),{type:'bar',data:{labels:lbls,datasets:[{label:'MVR',data:vals,backgroundColor:'rgba(243,156,18,.2)',borderColor:'rgba(243,156,18,.72)',borderWidth:1.5,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(255,255,255,.26)',font:{size:8}}},y:{beginAtZero:true,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'rgba(255,255,255,.26)',font:{size:8}}}}}});$('payTB').innerHTML=[...data].sort((a,b)=>new Date(b.paidAt||b.createdAt)-new Date(a.paidAt||a.createdAt)).map(d=>`<tr><td style="font-family:monospace;font-size:.62rem;color:#f39c12">${d.referenceNumber}</td><td>${d.customerName}</td><td style="font-family:monospace;color:#f39c12">${d.deliveryPrice} MVR</td><td>${pBadge(d.paymentStatus)}</td><td style="font-size:.68rem">${fmtD(d.paidAt||d.createdAt)}</td><td><div class="a-row">${d.paymentStatus==='under_review'?`<button class="a-btn ab-app" onclick="approvePay(${d.id})">Approve</button>`:''} ${d.paymentSlip?`<button class="a-btn ab-view" onclick="viewSlip('${d.paymentSlip}')">Slip</button>`:''}</div></td></tr>`).join('')}
+$('applyRev').onclick=()=>loadRevenue($('rStart').value,$('rEnd').value);
+$('resetRev').onclick=()=>{$('rStart').value='';$('rEnd').value='';loadRevenue()};
+
+$('trkSrchBtn').onclick=doTrack;$('trkSrch').addEventListener('keyup',e=>{if(e.key==='Enter')doTrack()});
+function doTrack(){const q=$('trkSrch').value.trim().toLowerCase();if(!q)return;const found=allD.filter(d=>d.customerContact?.includes(q)||d.referenceNumber?.toLowerCase().includes(q));const el=$('trkResult');if(!found.length){el.innerHTML='<div class="empty-s"><i class="fas fa-search"></i><p>No deliveries found</p></div>';return}el.innerHTML=found.map(d=>`<div class="t-res"><div class="t-igrid">${[['Reference',`<span style="font-family:monospace;font-size:.68rem;color:#f39c12">${d.referenceNumber}</span>`],['Customer',d.customerName],['Contact',`<a href="tel:${d.customerContact}" style="color:#f39c12">${d.customerContact}</a>`],['Mode',d.deliveryMode==='boat'?'Boat':'Cargo'],['Pickup',d.pickupLocation+(d.pickupAddress?` (${d.pickupAddress})`:'')],['Destination',d.deliveryLocation],['Cargo Type',d.cargoType||'—'],['Wt/Duration',d.isExpress?d.selectedHrLabel||'—':d.packageWeight||'—'],['Price',d.deliveryPrice+' MVR'],['Invoice',d.invoice?'Issued':'—'],['Created',fmtD(d.createdAt)]].map(([l,v])=>`<div class="t-cell"><div class="tl">${l}</div><div class="tv">${v}</div></div>`).join('')}</div><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${sBadge(d.status)} ${pBadge(d.paymentStatus)}<div class="a-row"><button class="a-btn ab-stat" onclick="openStat(${d.id})">Update</button>${d.paymentStatus==='under_review'?`<button class="a-btn ab-app" onclick="approvePay(${d.id})">Approve</button>`:''}</div></div></div>`).join('')}
+
+// STATUS
+$('statSel').addEventListener('change',function(){$('proofBox').style.display=this.value==='Delivered'?'block':'none'});
+$('proofFile').addEventListener('change',function(){$('proofFN').textContent=this.files[0]?this.files[0].name:'Tap'});
+window.openStat=function(id){eDelId=id;const d=allD.find(x=>x.id===id);if(!d)return;$('statSel').value=d.status||'Order Placed';$('proofBox').style.display=d.status==='Delivered'?'block':'none';$('proofFile').value='';$('statMod').classList.add('show')};
+$('statClose').onclick=$('statCancel').onclick=()=>$('statMod').classList.remove('show');
+$('statConfirm').onclick=async()=>{const ns=$('statSel').value;const d=allD.find(x=>x.id===eDelId);if(!d)return;d.attendedBy=me.username;d.attendedAt=new Date().toISOString();const sm={'Order Placed':1,'Processing':2,'In Transit':3,'Out for Delivery':4,'Delivered':5};if(ns==='Delivered'){const f=$('proofFile').files[0];if(!f){showToast('Upload proof image','err');return}const rd=new FileReader();rd.onload=async ev=>{d.status=ns;d.progress=5;d.deliveryImage=ev.target.result;d.completedAt=new Date().toISOString();await db.ref('cargoDeliveries').set(allD);pushN('Delivered',`${d.referenceNumber} delivered.`,d.createdBy);$('statMod').classList.remove('show');showToast('Marked Delivered','ok')};rd.readAsDataURL(f)}else{d.status=ns;d.progress=sm[ns]||1;await db.ref('cargoDeliveries').set(allD);pushN('Status Updated',`${d.referenceNumber}: ${ns}.`,d.createdBy);$('statMod').classList.remove('show');showToast('Updated','ok')}};
+
+// APPROVE PAYMENT → AUTO-GENERATE INVOICE
+window.approvePay=async function(id){if(!confirm('Approve this payment?'))return;const d=allD.find(x=>x.id===id);if(!d)return;d.paymentStatus='paid';d.approvedAt=new Date().toISOString();d.approvedBy=me.username;
+// Generate invoice automatically
+d.invoice={invoiceNo:genInvNo(),issuedAt:new Date().toISOString(),customerName:d.customerName,customerContact:d.customerContact,referenceNumber:d.referenceNumber,cargoType:d.cargoType,deliveryPrice:d.deliveryPrice,packageWeight:d.packageWeight,selectedHrLabel:d.selectedHrLabel,isExpress:d.isExpress,deliveryDate:d.deliveryDate,deliveryLocation:d.deliveryLocation,pickupLocation:d.pickupLocation};
+await db.ref('cargoDeliveries').set(allD);pushN('Payment Approved & Invoice Issued',`Payment for ${d.referenceNumber} approved. Your invoice is ready.`,d.createdBy);showToast('Approved & invoice generated','ok')};
+
+window.delD=async function(id){if(!confirm('Delete?'))return;await db.ref('cargoDeliveries').set(allD.filter(d=>d.id!==id));showToast('Deleted','ok')};
+
+// HOME PAGE
+window.previewI=function(input,prevId,fnId){if(!input.files[0])return;const rd=new FileReader();rd.onload=e=>{const img=$(prevId);img.src=e.target.result;img.style.display='block';if(fnId)$(fnId).textContent=input.files[0].name};rd.readAsDataURL(input.files[0])}
+function loadHomePageSettings(){if(siteSettings.homeTagline)$('taglineInput').value=siteSettings.homeTagline;loadSlideList();loadHowImgList()}
+function loadSlideList(){const el=$('slideList');const slides=siteSettings.homeSlides||[];if(!slides.length){el.innerHTML='<div class="empty-s"><i class="fas fa-images"></i><p>No slides yet.</p></div>';return}el.innerHTML=slides.map((s,i)=>`<div class="slide-item"><img src="${s.url||s}" alt="" onerror="this.style.background='#253445'"><div class="si-url">${s.url||s}</div><button class="a-btn ab-del" onclick="rmSlide(${i})">Remove</button></div>`).join('')}
+window.addSlideUrl=async function(){const url=$('slideUrl').value.trim();if(!url){showToast('Enter URL','err');return}siteSettings.homeSlides=[...(siteSettings.homeSlides||[]),{url}];await db.ref('siteSettings').set(siteSettings);$('slideUrl').value='';showToast('Slide added','ok')};
+window.uploadSlide=function(input){if(!input.files[0])return;const lbl=$('slideImgFNlbl');if(lbl)lbl.textContent='Uploading…';const rd=new FileReader();rd.onload=async e=>{siteSettings.homeSlides=[...(siteSettings.homeSlides||[]),{url:e.target.result}];await db.ref('siteSettings').set(siteSettings);input.value='';if(lbl)lbl.textContent='Choose Image to Upload';showToast('Slide added!','ok')};rd.readAsDataURL(input.files[0])};
+window.rmSlide=async function(i){const s=[...(siteSettings.homeSlides||[])];s.splice(i,1);siteSettings.homeSlides=s;await db.ref('siteSettings').set(siteSettings);showToast('Removed','ok')};
+window.saveTagline=async function(){siteSettings.homeTagline=$('taglineInput').value.trim();await db.ref('siteSettings').set(siteSettings);showToast('Saved','ok')};
+function loadHowImgList(){const el=$('howImgList');const imgs=siteSettings.howToImages||[];if(!imgs.length){el.innerHTML='<div class="empty-s"><i class="fas fa-images"></i><p>No guide images yet.</p></div>';return}el.innerHTML='<div class="img-card-grid">'+imgs.map((img,i)=>`<div class="img-card-item"><img src="${img.url||img}" alt=""><div class="card-lbl">Step ${i+1}</div><button class="card-rm" onclick="rmHowImg(${i})">×</button></div>`).join('')+'</div>'}
+window.uploadHowImg=function(input){if(!input.files[0])return;const lbl=$('howImgFNlbl');if(lbl)lbl.textContent='Uploading…';const rd=new FileReader();rd.onload=async e=>{siteSettings.howToImages=[...(siteSettings.howToImages||[]),{url:e.target.result}];await db.ref('siteSettings').set(siteSettings);input.value='';if(lbl)lbl.textContent='Choose Guide Image';showToast('Guide image added!','ok')};rd.readAsDataURL(input.files[0])};
+window.addHowImgUrl=async function(){const url=$('howImgUrl').value.trim();if(!url){showToast('Enter a URL','err');return}siteSettings.howToImages=[...(siteSettings.howToImages||[]),{url}];await db.ref('siteSettings').set(siteSettings);$('howImgUrl').value='';showToast('Guide image added','ok')};
+window.rmHowImg=async function(i){const imgs=[...(siteSettings.howToImages||[])];imgs.splice(i,1);siteSettings.howToImages=imgs;await db.ref('siteSettings').set(siteSettings);showToast('Removed','ok')};
+
+// DRIVER HOME PAGE SETTINGS
+function loadDriverHomePage(){
+  if(siteSettings.driverTagline)$('drvTaglineInput').value=siteSettings.driverTagline;
+  loadDrvSlideList();loadDrvHowImgList();
+}
+function loadDrvSlideList(){
+  const el=$('drvSlideList');if(!el)return;
+  const slides=siteSettings.driverSlides||[];
+  if(!slides.length){el.innerHTML='<div class="empty-s"><i class="fas fa-images"></i><p>No driver slides yet. Uses main home slides as fallback.</p></div>';return}
+  el.innerHTML=slides.map((s,i)=>`<div class="slide-item"><img src="${s.url||s}" alt="" onerror="this.style.background='#253445'"><div class="si-url">${s.url||s}</div><button class="a-btn ab-del" onclick="rmDrvSlide(${i})">Remove</button></div>`).join('');
+}
+window.addDrvSlideUrl=async function(){const url=$('drvSlideUrl').value.trim();if(!url){showToast('Enter URL','err');return}siteSettings.driverSlides=[...(siteSettings.driverSlides||[]),{url}];await db.ref('siteSettings').set(siteSettings);$('drvSlideUrl').value='';showToast('Driver slide added','ok')};
+window.uploadDrvSlide=function(input){if(!input.files[0])return;const lbl=$('drvSlideImgLbl');if(lbl)lbl.textContent='Uploading…';const rd=new FileReader();rd.onload=async e=>{siteSettings.driverSlides=[...(siteSettings.driverSlides||[]),{url:e.target.result}];await db.ref('siteSettings').set(siteSettings);input.value='';if(lbl)lbl.textContent='Choose Image to Upload';showToast('Driver slide added!','ok');loadDrvSlideList()};rd.readAsDataURL(input.files[0])};
+window.rmDrvSlide=async function(i){const s=[...(siteSettings.driverSlides||[])];s.splice(i,1);siteSettings.driverSlides=s;await db.ref('siteSettings').set(siteSettings);showToast('Removed','ok')};
+function loadDrvHowImgList(){
+  const el=$('drvHowImgList');if(!el)return;
+  const imgs=siteSettings.driverHowToImages||[];
+  if(!imgs.length){el.innerHTML='<div class="empty-s"><i class="fas fa-images"></i><p>No driver guide images yet.</p></div>';return}
+  el.innerHTML='<div class="img-card-grid">'+imgs.map((img,i)=>`<div class="img-card-item"><img src="${img.url||img}" alt=""><div class="card-lbl">Step ${i+1}</div><button class="card-rm" onclick="rmDrvHowImg(${i})">×</button></div>`).join('')+'</div>';
+}
+window.addDrvHowUrl=async function(){const url=$('drvHowUrl').value.trim();if(!url){showToast('Enter URL','err');return}siteSettings.driverHowToImages=[...(siteSettings.driverHowToImages||[]),{url}];await db.ref('siteSettings').set(siteSettings);$('drvHowUrl').value='';showToast('Guide image added','ok')};
+window.uploadDrvHowImg=function(input){if(!input.files[0])return;const lbl=$('drvHowImgLbl');if(lbl)lbl.textContent='Uploading…';const rd=new FileReader();rd.onload=async e=>{siteSettings.driverHowToImages=[...(siteSettings.driverHowToImages||[]),{url:e.target.result}];await db.ref('siteSettings').set(siteSettings);input.value='';if(lbl)lbl.textContent='Choose Guide Image';showToast('Guide image added!','ok');loadDrvHowImgList()};rd.readAsDataURL(input.files[0])};
+window.rmDrvHowImg=async function(i){const imgs=[...(siteSettings.driverHowToImages||[])];imgs.splice(i,1);siteSettings.driverHowToImages=imgs;await db.ref('siteSettings').set(siteSettings);showToast('Removed','ok')};
+window.saveDrvTagline=async function(){siteSettings.driverTagline=$('drvTaglineInput').value.trim();await db.ref('siteSettings').set(siteSettings);showToast('Driver tagline saved','ok')};
+
+// LOGIN PAGE SETTINGS
+function loadLoginPageSettings(){
+  loadTgPage();
+  const logo=siteSettings.loginLogoUrl||'';
+  if(logo){$('loginLogoPrev').src=logo;$('loginLogoPrev').style.display='block';$('loginLogoStatus').textContent='Logo is set.'}
+  else{$('loginLogoPrev').style.display='none';$('loginLogoStatus').textContent='No logo set.'}
+  loadSocialList()
+}
+window.uploadLoginLogo=function(input){if(!input.files[0])return;const rd=new FileReader();rd.onload=async e=>{siteSettings.loginLogoUrl=e.target.result;await db.ref('siteSettings').set(siteSettings);input.value='';$('loginLogoFN').textContent='Uploaded!';showToast('Logo saved','ok')};rd.readAsDataURL(input.files[0])};
+window.removeLoginLogo=async function(){siteSettings.loginLogoUrl='';await db.ref('siteSettings').set(siteSettings);showToast('Logo removed','ok')};
+$('addSocialBtn').onclick=async()=>{const pl=$('socialPlatform').value,url=$('socialUrl').value.trim();if(!url){showToast('Enter URL','err');return}siteSettings.socialLinks=[...(siteSettings.socialLinks||[]),{platform:pl,url}];await db.ref('siteSettings').set(siteSettings);$('socialUrl').value='';showToast('Social link added','ok')};
+function loadSocialList(){const el=$('socialList');const links=siteSettings.socialLinks||[];const icons={facebook:'fab fa-facebook-f',instagram:'fab fa-instagram',telegram:'fab fa-telegram-plane',whatsapp:'fab fa-whatsapp',twitter:'fab fa-twitter',youtube:'fab fa-youtube',tiktok:'fab fa-tiktok',viber:'fab fa-viber',other:'fas fa-link'};if(!links.length){el.innerHTML='<div class="empty-s"><i class="fas fa-share-alt"></i><p>No social links yet.</p></div>';return}el.innerHTML=links.map((l,i)=>`<div class="social-item"><div class="si-icon"><i class="${icons[l.platform?.toLowerCase()]||'fas fa-link'}"></i></div><div class="si-info"><div class="si-pl">${l.platform}</div><div class="si-url">${l.url}</div></div><button class="a-btn ab-del" onclick="rmSocial(${i})">Remove</button></div>`).join('')}
+window.rmSocial=async function(i){const links=[...(siteSettings.socialLinks||[])];links.splice(i,1);siteSettings.socialLinks=links;await db.ref('siteSettings').set(siteSettings);showToast('Removed','ok')};
+
+// PICKUP LOCATIONS
+$('addLocBtn').onclick=async()=>{const name=$('locName').value.trim(),type=$('locType').value;if(!name){showToast('Enter name','err');return}let imageUrl='';const f=$('locImg').files[0];if(f){const rd=new FileReader();const p=new Promise(res=>{rd.onload=e=>res(e.target.result);rd.readAsDataURL(f)});imageUrl=await p}allPickups.push({id:Date.now(),name,type,imageUrl,active:true});await db.ref('pickupLocations').set(allPickups);$('locName').value='';$('locImg').value='';$('locImgFN').textContent='Tap to upload photo';$('locPrev').style.display='none';showToast('Location added','ok')};
+function loadLocList(){const el=$('locList');if(!allPickups.length){el.innerHTML='<div class="empty-s"><i class="fas fa-map-marker-alt"></i><p>No pickup locations yet.</p></div>';return}el.innerHTML='<div class="img-card-grid">'+allPickups.map(loc=>`<div class="img-card-item">${loc.imageUrl?`<img src="${loc.imageUrl}" alt="">`:`<div class="no-img"><i class="fas ${loc.type==='address'?'fa-map-marker-alt':loc.type==='postal'?'fa-envelope':'fa-store'}"></i></div>`}<div class="card-lbl">${loc.name}</div><div class="card-sub">${loc.type==='address'?'Addr req':loc.type==='postal'?'Post':'Standard'}</div><button class="card-rm" onclick="rmLoc(${loc.id})">×</button></div>`).join('')+'</div>'}
+window.rmLoc=async function(id){if(!confirm('Remove?'))return;await db.ref('pickupLocations').set(allPickups.filter(l=>l.id!==id));showToast('Removed','ok')};
+
+// BOATS
+// BOAT ATOLL TAG INPUT
+let newBAtolls=[];
+$('boatAtollIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!newBAtolls.includes(v)){newBAtolls.push(v);renderIslTags($('boatAtollTagsWrap'),newBAtolls,'rmNBA');this.value=''}}});
+window.rmNBA=function(i){newBAtolls.splice(i,1);renderIslTags($('boatAtollTagsWrap'),newBAtolls,'rmNBA')};
+
+// SB ATOLL TAG INPUT
+let newSBAtolls=[];
+$('sbAtollIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!newSBAtolls.includes(v)){newSBAtolls.push(v);renderIslTags($('sbAtollTagsWrap'),newSBAtolls,'rmNSBA');this.value=''}}});
+window.rmNSBA=function(i){newSBAtolls.splice(i,1);renderIslTags($('sbAtollTagsWrap'),newSBAtolls,'rmNSBA')};
+
+// EDIT BOAT ATOLL TAG INPUT
+let ebAtolls=[];
+$('ebAtollIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!ebAtolls.includes(v)){ebAtolls.push(v);renderIslTags($('ebAtollTagsWrap'),ebAtolls,'rmEBA');this.value=''}}});
+window.rmEBA=function(i){ebAtolls.splice(i,1);renderIslTags($('ebAtollTagsWrap'),ebAtolls,'rmEBA')};
+
+// EDIT SB ATOLL TAG INPUT
+let esbAtolls=[];
+$('esbAtollIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!esbAtolls.includes(v)){esbAtolls.push(v);renderIslTags($('esbAtollTagsWrap'),esbAtolls,'rmESBA');this.value=''}}});
+window.rmESBA=function(i){esbAtolls.splice(i,1);renderIslTags($('esbAtollTagsWrap'),esbAtolls,'rmESBA')};
+
+$('islIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!newBIsls.includes(v)){newBIsls.push(v);renderIslTags($('islTagsWrap'),newBIsls,'rmNBI');this.value=''}}});
+window.rmNBI=function(i){newBIsls.splice(i,1);renderIslTags($('islTagsWrap'),newBIsls,'rmNBI')};
+$('addBoatBtn').onclick=async()=>{const name=$('boatName').value.trim(),route=$('boatRoute').value.trim();const va=$('boatAtollIn').value.trim();if(va&&!newBAtolls.includes(va))newBAtolls.push(va);$('boatAtollIn').value='';const v=$('islIn').value.trim();if(v&&!newBIsls.includes(v))newBIsls.push(v);$('islIn').value='';if(!name){showToast('Enter name','err');return}if(!newBIsls.length){showToast('Add islands','err');return}let imageUrl='';const f=$('boatImg').files[0];if(f){const rd=new FileReader();const p=new Promise(res=>{rd.onload=e=>res(e.target.result);rd.readAsDataURL(f)});imageUrl=await p}allBoats.push({id:Date.now(),name,route,atolls:[...newBAtolls],atoll:newBAtolls[0]||'',islands:[...newBIsls],imageUrl,active:true});await db.ref('boats').set(allBoats);$('boatName').value='';$('boatRoute').value='';$('boatImg').value='';newBAtolls=[];$('boatAtollTagsWrap').innerHTML='';$('boatImgFN').textContent='Tap to upload photo';$('boatPrev').style.display='none';newBIsls=[];$('islTagsWrap').innerHTML='';showToast('Boat added','ok')};
+function loadBoatList(){const el=$('boatList');if(!allBoats.length){el.innerHTML='<div class="empty-s"><i class="fas fa-ship"></i><p>No boats yet.</p></div>';return}el.innerHTML='<div class="img-card-grid">'+allBoats.map(b=>`<div class="img-card-item">${b.imageUrl?`<img src="${b.imageUrl}" alt="">`:`<div class="no-img"><i class="fas fa-ship"></i></div>`}<div class="card-lbl">${b.name}</div><div class="card-sub">${b.route||''}${b.active===false?' (Off)':''}</div><button class="card-rm" onclick="openEB(${b.id})" style="background:rgba(52,152,219,.85)"><i class="fas fa-pen" style="font-size:.42rem"></i></button></div>`).join('')+'</div>'+allBoats.map(b=>`<div class="p-item"><div style="flex:1;min-width:0"><span style="font-weight:700;color:white;font-size:.78rem"><i class="fas fa-ship" style="color:#3498db;margin-right:5px"></i>${b.name}</span><div class="isl-tags" style="margin-top:4px">${(b.islands||[]).map(i=>`<span class="isl-tag">${i}</span>`).join('')}</div></div><div class="a-row"><button class="a-btn ab-edit" onclick="openEB(${b.id})">Edit</button><button class="a-btn ab-del" onclick="rmBoat(${b.id})">Remove</button></div></div>`).join('')}
+window.rmBoat=async function(id){if(!confirm('Remove?'))return;await db.ref('boats').set(allBoats.filter(b=>b.id!==id));showToast('Removed','ok')};
+window.openEB=function(id){const b=allBoats.find(x=>x.id===id);if(!b)return;eBoatId=id;$('ebName').value=b.name;$('ebRoute').value=b.route||'';ebAtolls=b.atolls?[...b.atolls]:(b.atoll?[b.atoll]:[]);renderIslTags($('ebAtollTagsWrap'),ebAtolls,'rmEBA');$('ebActive').value=String(b.active!==false);ebIsls=[...(b.islands||[])];renderIslTags($('ebIslTagsWrap'),ebIsls,'rmEBI');if(b.imageUrl){$('ebPrev').src=b.imageUrl;$('ebPrev').style.display='block'}else $('ebPrev').style.display='none';$('ebMod').classList.add('show')};
+$('ebIslIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!ebIsls.includes(v)){ebIsls.push(v);renderIslTags($('ebIslTagsWrap'),ebIsls,'rmEBI');this.value=''}}});
+window.rmEBI=function(i){ebIsls.splice(i,1);renderIslTags($('ebIslTagsWrap'),ebIsls,'rmEBI')};
+$('ebClose').onclick=$('ebCancel').onclick=()=>$('ebMod').classList.remove('show');
+$('ebConfirm').onclick=async()=>{const b=allBoats.find(x=>x.id===eBoatId);if(!b)return;const v=$('ebIslIn').value.trim();if(v&&!ebIsls.includes(v))ebIsls.push(v);$('ebIslIn').value='';const va=$('ebAtollIn').value.trim();if(va&&!ebAtolls.includes(va))ebAtolls.push(va);$('ebAtollIn').value='';b.name=$('ebName').value;b.route=$('ebRoute').value;b.atolls=[...ebAtolls];b.atoll=ebAtolls[0]||'';b.islands=[...ebIsls];b.active=$('ebActive').value==='true';const f=$('ebImgFile').files[0];if(f){const rd=new FileReader();const p=new Promise(res=>{rd.onload=e=>res(e.target.result);rd.readAsDataURL(f)});b.imageUrl=await p}await db.ref('boats').set(allBoats);$('ebMod').classList.remove('show');showToast('Updated','ok')};
+
+// CARGO TYPES
+$('addCtBtn').onclick=async()=>{const name=$('ctName').value.trim(),key=$('ctKey').value,eta=$('ctEta').value.trim(),desc=$('ctDesc').value.trim(),priceType=$('ctPriceType').value,price=0,order=parseInt($('ctOrder').value)||99;if(!name){showToast('Enter type name','err');return}allCT.push({id:Date.now(),name,key,eta,description:desc,price,isExpress:priceType==='hourly',order,active:true});await db.ref('cargoTypes').set(allCT);$('ctName').value='';$('ctEta').value='';$('ctDesc').value='';$('ctOrder').value='';showToast('Cargo type added','ok')};
+function loadCtList(){const el=$('ctList');if(!allCT.length){el.innerHTML='<div class="empty-s"><i class="fas fa-box"></i><p>No cargo types yet.</p></div>';return}const icons={'normal':'fa-box','express':'fa-bolt','fragile':'fa-wine-glass-crack','oversized':'fa-pallet','custom':'fa-cube'};el.innerHTML=[...allCT].sort((a,b)=>(a.order||0)-(b.order||0)).map(ct=>`<div class="p-item"><div><div style="font-weight:700;color:white;font-size:.78rem"><i class="fas ${icons[ct.key||'normal']||'fa-box'}" style="color:#f39c12;margin-right:5px"></i>${ct.name}</div><div style="font-size:.65rem;color:rgba(255,255,255,.38);margin-top:2px">${ct.eta||''}${ct.description?' · '+ct.description:''} — ${ct.isExpress?'Hourly (price per hour option)':'Weight-based pricing'}</div></div><div style="display:flex;align-items:center;gap:7px"><span class="badge ${ct.isExpress?'b-exp':'b-norm'}">${ct.isExpress?'Hourly':'Flat'}</span><button class="a-btn ab-del" onclick="rmCt(${ct.id})">Remove</button></div></div>`).join('')}
+window.rmCt=async function(id){if(!confirm('Remove?'))return;await db.ref('cargoTypes').set(allCT.filter(c=>c.id!==id));showToast('Removed','ok')};
+
+// EXPRESS HOURS
+$('addHrBtn').onclick=async()=>{const ctId=$('hrCargoType').value,hours=parseFloat($('hrHours').value),label=$('hrLabel').value.trim(),price=parseFloat($('hrPrice').value);if(!ctId){showToast('Select a cargo type','err');return}if(!hours||!price){showToast('Fill hours and price','err');return}const lbl=label||`${hours} Hour${hours>1?'s':''}`;allExpHrs.push({id:Date.now(),cargoTypeId:ctId,hours,label:lbl,price});await db.ref('expressHours').set(allExpHrs);$('hrHours').value='';$('hrLabel').value='';$('hrPrice').value='';showToast('Express hour added','ok')};
+function loadHrList(){
+  // Populate cargo type select
+  const sel=$('hrCargoType');if(sel){const expTypes=allCT.filter(c=>c.isExpress);sel.innerHTML='<option value="">Select express type…</option>'+expTypes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+  const el=$('hrList');if(!allExpHrs.length){el.innerHTML='<div class="empty-s"><i class="fas fa-clock"></i><p>No express hours yet.</p></div>';return}
+  // Group by cargo type
+  const expTypes=allCT.filter(c=>c.isExpress);
+  let html='';
+  expTypes.forEach(ct=>{
+    const hrs=allExpHrs.filter(h=>String(h.cargoTypeId)===String(ct.id)).sort((a,b)=>a.hours-b.hours);
+    if(!hrs.length)return;
+    html+=`<div style="margin-bottom:.85rem"><div style="font-size:.72rem;font-weight:700;color:#f39c12;margin-bottom:.5rem;display:flex;align-items:center;gap:5px"><i class="fas fa-bolt"></i>${ct.name}</div>${hrs.map(hr=>`<div class="hr-item"><div class="hr-num"><span>${hr.hours}</span><small>HR</small></div><div class="hr-info"><div class="hn">${hr.label}</div><div class="hp">MVR ${hr.price}</div></div><button class="a-btn ab-del" onclick="rmHr(${hr.id})">Remove</button></div>`).join('')}</div>`;
+  });
+  // Orphans (no type assigned)
+  const orphans=allExpHrs.filter(h=>!h.cargoTypeId||!allCT.find(c=>String(c.id)===String(h.cargoTypeId)));
+  if(orphans.length){html+=`<div style="margin-bottom:.5rem;font-size:.72rem;color:rgba(255,255,255,.3)">Unassigned</div>${orphans.map(hr=>`<div class="hr-item"><div class="hr-num"><span>${hr.hours}</span><small>HR</small></div><div class="hr-info"><div class="hn">${hr.label}</div><div class="hp">MVR ${hr.price}</div></div><button class="a-btn ab-del" onclick="rmHr(${hr.id})">Remove</button></div>`).join('')}`}
+  el.innerHTML=html||'<div class="empty-s"><i class="fas fa-clock"></i><p>No express hours yet.</p></div>'
+}
+window.rmHr=async function(id){if(!confirm('Remove?'))return;await db.ref('expressHours').set(allExpHrs.filter(h=>h.id!==id));showToast('Removed','ok')};
+
+// WEIGHT RANGES
+$('addPBtn').onclick=async()=>{const mn=parseFloat($('pMin').value),mx=parseFloat($('pMax').value),pv=parseFloat($('pVal').value);if(isNaN(mn)||isNaN(mx)||isNaN(pv)){showToast('Fill all fields','err');return}if(mn>=mx){showToast('Min must be < max','err');return}const ovlp=allP.find(r=>(mn>=r.min&&mn<=r.max)||(mx>=r.min&&mx<=r.max)||(mn<=r.min&&mx>=r.max));if(ovlp){showToast('Range overlaps existing','err');return}allP.push({id:Date.now(),min:mn,max:mx,price:pv});await db.ref('cargoPriceRanges').set(allP);$('pMin').value='';$('pMax').value='';$('pVal').value='';showToast('Range added','ok')};
+function loadPrices(){const el=$('pList');if(!allP.length){el.innerHTML='<div class="empty-s"><i class="fas fa-weight-hanging"></i><p>No weight ranges yet.</p></div>';return}el.innerHTML=[...allP].sort((a,b)=>a.min-b.min).map(r=>`<div class="p-item"><div class="rng">${r.min}–${r.max} kg</div><div style="display:flex;align-items:center;gap:8px"><div class="amt">${r.price} MVR</div><button class="a-btn ab-del" onclick="rmP(${r.id})">Remove</button></div></div>`).join('')}
+window.rmP=async function(id){if(!confirm('Remove?'))return;await db.ref('cargoPriceRanges').set(allP.filter(r=>r.id!==id));showToast('Removed','ok')};
+
+// CAPACITY
+function loadCapPage(){const cap=siteSettings.dailyCapacity||0;$('capInput').value=cap||'';const today=new Date().toISOString().split('T')[0],tc=allD.filter(d=>(d.createdAt||'').startsWith(today)).length;$('capStatus').innerHTML=cap?`<strong style="color:white">Today:</strong> ${tc}/${cap} (${Math.round(tc/cap*100)}%)`:'No limit set'}
+$('saveCapBtn').onclick=async()=>{const v=parseInt($('capInput').value);if(isNaN(v)||v<0){showToast('Enter valid number','err');return}siteSettings.dailyCapacity=v;await db.ref('siteSettings').set(siteSettings);showToast(v===0?'Limit disabled':'Set to '+v,'ok');loadCapPage()};
+
+// USERS
+$('addUBtn').onclick=async()=>{const u=$('nUsr').value.trim(),e=$('nEml').value.trim(),c=$('nCnt').value.trim(),p=$('nPwd').value,r=$('nRole').value;if(!u||!e||!c||!p){showToast('Fill all fields','err');return}if(allU.find(x=>x.email===e)){showToast('Email exists','err');return}const perms=r==='staff'?{dashboard:$('pDashboard').checked,records:$('pRecords').checked,track:$('pTrack').checked,revenue:$('pRevenue').checked,status:$('pStatus').checked,approve:$('pApprove').checked,config:$('pConfig').checked}:null;await db.ref('users').set([...allU,{id:Date.now(),username:u,email:e,contact:c,password:p,role:r,status:'active',permissions:perms}]);$('nUsr').value='';$('nEml').value='';$('nCnt').value='';$('nPwd').value='';document.getElementById('permWrap').style.display='none';$('nRole').value='user';showToast('User added','ok')};
+function loadUsers(){const el=$('uList');const filtered=allU.filter(u=>u.email!==me?.email);if(!filtered.length){el.innerHTML='<div class="empty-s"><i class="fas fa-users"></i><p>No users.</p></div>';return}el.innerHTML=filtered.map(u=>{const rClass=u.role==='admin'?'rc-a':u.role==='staff'?'rc-s':'rc-u';const permList=u.role==='staff'&&u.permissions?Object.entries(u.permissions).filter(([k,v])=>v).map(([k])=>k).join(', '):'';return`<div class="u-item"><div style="flex:1;min-width:0"><div class="u-nm">${u.username}</div><div class="u-em">${u.email} · ${u.contact}</div>${permList?`<div style="font-size:.62rem;color:rgba(243,156,18,.7);margin-top:3px"><i class="fas fa-key" style="margin-right:3px"></i>${permList}</div>`:''}</div><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap"><span class="r-chip ${rClass}">${u.role.toUpperCase()}</span><span class="badge ${u.status==='pending'?'b-pend-a':u.status==='blocked'?'b-blocked':'b-active-u'}">${u.status==='pending'?'Pending':u.status==='blocked'?'Blocked':'Active'}</span>${u.status==='pending'?`<button class="a-btn ab-grant" onclick="grantAccess(${u.id})">Grant</button>`:''} ${u.status!=='blocked'?`<button class="a-btn ab-block" onclick="blockUser(${u.id})">Block</button>`:`<button class="a-btn ab-grant" onclick="unblockUser(${u.id})">Unblock</button>`}<button class="a-btn ab-edit" onclick="openEU(${u.id})">Edit</button><button class="a-btn ab-del" onclick="rmU(${u.id})">Remove</button></div></div>`}).join('')}
+window.grantAccess=async function(id){const u=allU.find(x=>x.id===id);if(!u)return;u.status='active';await db.ref('users').set(allU);pushN('Access Granted','Your account is approved. You can now sign in.',u.email);showToast('Access granted','ok')};
+window.blockUser=async function(id){if(!confirm('Block?'))return;const u=allU.find(x=>x.id===id);if(!u)return;u.status='blocked';await db.ref('users').set(allU);showToast('Blocked','ok')};
+window.unblockUser=async function(id){const u=allU.find(x=>x.id===id);if(!u)return;u.status='active';await db.ref('users').set(allU);showToast('Unblocked','ok')};
+window.openEU=function(id){const u=allU.find(x=>x.id===id);if(!u)return;eUserId=id;$('euUsr').value=u.username;$('euEml').value=u.email;$('euCnt').value=u.contact;$('euPwd').value='';$('euRole').value=u.role||'user';const pw=$('euPermWrap');if(pw)pw.style.display=u.role==='staff'?'block':'none';if(u.role==='staff'&&u.permissions){const pm=u.permissions;['Dashboard','Records','Track','Revenue','Status','Approve','Config'].forEach(k=>{const el=$('ep'+k);if(el)el.checked=!!(pm[k.toLowerCase()])});}$('euMod').classList.add('show')};
+$('euRole').addEventListener('change',function(){const pw=$('euPermWrap');if(pw)pw.style.display=this.value==='staff'?'block':'none'});
+$('euClose').onclick=$('euCancel').onclick=()=>$('euMod').classList.remove('show');
+$('euConfirm').onclick=async()=>{const u=allU.find(x=>x.id===eUserId);if(!u)return;u.username=$('euUsr').value;u.email=$('euEml').value;u.contact=$('euCnt').value;u.role=$('euRole').value;if(u.role==='staff'){u.permissions={dashboard:$('epDashboard').checked,records:$('epRecords').checked,track:$('epTrack').checked,revenue:$('epRevenue').checked,status:$('epStatus').checked,approve:$('epApprove').checked,config:$('epConfig').checked}}else{u.permissions=null}const np=$('euPwd').value;if(np)u.password=np;await db.ref('users').set(allU);$('euMod').classList.remove('show');showToast('Updated','ok')};
+window.rmU=async function(id){if(!confirm('Remove?'))return;await db.ref('users').set(allU.filter(u=>u.id!==id));showToast('Removed','ok')};
+
+// DELIVERY LOCATIONS
+$('addDlBtn')?.addEventListener('click',async()=>{const name=$('dlName').value.trim();if(!name){showToast('Enter location name','err');return}allDL.push({id:Date.now(),name});await db.ref('deliveryLocations').set(allDL);$('dlName').value='';showToast('Location added','ok')});
+function loadDlList(){const el=$('dlList');if(!el)return;if(!allDL.length){el.innerHTML='<div class="empty-s"><i class="fas fa-map-pin"></i><p>No delivery locations yet.</p></div>';return}el.innerHTML=allDL.map(l=>`<div class="p-item"><div class="rng">${l.name}</div><button class="a-btn ab-del" onclick="rmDl(${l.id})">Remove</button></div>`).join('')}
+window.rmDl=async function(id){if(!confirm('Remove?'))return;await db.ref('deliveryLocations').set(allDL.filter(l=>l.id!==id));showToast('Removed','ok')};
+
+// CARGO TYPE PRICE TYPE CHANGE
+
+window.viewSlip=src=>{$('slipImg').src=src;$('slipMod').classList.add('show')};
+$('slipClose').onclick=$('slipClose2').onclick=()=>$('slipMod').classList.remove('show');
+function pushN(title,msg,email){const n={id:Date.now(),title,message:msg,userEmail:email||'all',timestamp:new Date().toISOString(),read:false};db.ref('notifications').set([...allN,n])}
+// TELEGRAM SETTINGS
+function loadTgPage(){
+  const t=siteSettings.tgToken||'8417757176:AAEWgzN_MK9ljtV9WN4vtW1ag9ZoYEsY6Ck';
+  const c=siteSettings.tgChatId||'965429044';
+  if($('tgToken'))$('tgToken').value=t;
+  if($('tgChat'))$('tgChat').value=c;
+  if($('tgStatus'))$('tgStatus').textContent=`Sending to: ${c}`;
+}
+$('saveTgBtn')?.addEventListener('click',async()=>{const t=$('tgToken').value.trim(),c=$('tgChat').value.trim();if(!t||!c){showToast('Fill both fields','err');return}siteSettings.tgToken=t;siteSettings.tgChatId=c;await db.ref('siteSettings').set(siteSettings);showToast('Telegram settings saved','ok');$('tgStatus').textContent=`Sending to: ${c}`});
+$('tgTestBtn')?.addEventListener('click',async()=>{
+  const token='8417757176:AAEWgzN_MK9ljtV9WN4vtW1ag9ZoYEsY6Ck';
+  const chat_id=965429044;
+  if($('tgStatus'))$('tgStatus').textContent='Sending...';
+  try{
+    const r=await fetch('https://api.telegram.org/bot'+token+'/sendMessage',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:chat_id,text:'EasyCargo test - it works!'})
+    });
+    const j=await r.json();
+    if($('tgStatus'))$('tgStatus').textContent=JSON.stringify(j);
+    if(j.ok)showToast('Message sent!','ok');
+    else showToast('Failed: '+j.description,'err');
+  }catch(e){
+    if($('tgStatus'))$('tgStatus').textContent='Exception: '+e.message;
+    showToast('Error: '+e.message,'err');
+  }
+});
+
+function doLogout(){localStorage.removeItem('ecAdmin');me=null;$('adminApp').style.display='none';$('loginScreen').style.display='flex'}
+
+// SPEED BOATS
+$('sbIslIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!newSBIsls.includes(v)){newSBIsls.push(v);renderIslTags($('sbIslTagsWrap'),newSBIsls,'rmNSBI');this.value=''}}});
+window.rmNSBI=function(i){newSBIsls.splice(i,1);renderIslTags($('sbIslTagsWrap'),newSBIsls,'rmNSBI')};
+$('addSBBtn').onclick=async()=>{const name=$('sbName').value.trim(),route=$('sbRoute').value.trim();const vsa=$('sbAtollIn').value.trim();if(vsa&&!newSBAtolls.includes(vsa))newSBAtolls.push(vsa);$('sbAtollIn').value='';const v=$('sbIslIn').value.trim();if(v&&!newSBIsls.includes(v))newSBIsls.push(v);$('sbIslIn').value='';if(!name){showToast('Enter name','err');return}let imageUrl='';const f=$('sbImg').files[0];if(f){const rd=new FileReader();const p=new Promise(res=>{rd.onload=e=>res(e.target.result);rd.readAsDataURL(f)});imageUrl=await p}allSB.push({id:Date.now(),name,route,atolls:[...newSBAtolls],atoll:newSBAtolls[0]||'',islands:[...newSBIsls],imageUrl,active:true});await db.ref('speedBoats').set(allSB);$('sbName').value='';$('sbRoute').value='';$('sbImg').value='';newSBAtolls=[];$('sbAtollTagsWrap').innerHTML='';$('sbImgFN').textContent='Tap to upload photo';$('sbPrev').style.display='none';newSBIsls=[];$('sbIslTagsWrap').innerHTML='';showToast('Speed Boat added','ok')};
+function loadSBList(){const el=$('sbList');if(!el)return;if(!allSB.length){el.innerHTML='<div class="empty-s"><i class="fas fa-bolt"></i><p>No speed boats yet.</p></div>';return}el.innerHTML='<div class="img-card-grid">'+allSB.map(b=>`<div class="img-card-item">${b.imageUrl?`<img src="${b.imageUrl}" alt="">`:`<div class="no-img"><i class="fas fa-bolt"></i></div>`}<div class="card-lbl">${b.name}</div><div class="card-sub">${b.atoll?'<i class="fas fa-compass" style="margin-right:2px;color:#f39c12"></i>'+b.atoll+'<br>':''} ${b.route||''}${b.active===false?' (Off)':''}</div><button class="card-rm" onclick="openESB(${b.id})" style="background:rgba(243,156,18,.85)"><i class="fas fa-pen" style="font-size:.42rem"></i></button></div>`).join('')+'</div>'+allSB.map(b=>`<div class="p-item"><div style="flex:1;min-width:0"><span style="font-weight:700;color:white;font-size:.78rem"><i class="fas fa-bolt" style="color:#f39c12;margin-right:5px"></i>${b.name}</span>${b.atoll?`<span style="margin-left:7px;font-size:.62rem;background:rgba(243,156,18,.12);border:1px solid rgba(243,156,18,.25);color:#f39c12;padding:1px 7px;border-radius:8px">${b.atoll}</span>`:''}<div style="font-size:.64rem;color:rgba(255,255,255,.4);margin-top:2px">${b.route||''}</div><div class="isl-tags" style="margin-top:4px">${(b.islands||[]).map(i=>`<span class="isl-tag">${i}</span>`).join('')}</div></div><div class="a-row"><button class="a-btn ab-edit" onclick="openESB(${b.id})">Edit</button><button class="a-btn ab-del" onclick="rmSB(${b.id})">Remove</button></div></div>`).join('')}
+window.rmSB=async function(id){if(!confirm('Remove?'))return;await db.ref('speedBoats').set(allSB.filter(b=>b.id!==id));showToast('Removed','ok')};
+window.openESB=function(id){const b=allSB.find(x=>x.id===id);if(!b)return;eSBId=id;$('esbName').value=b.name;$('esbRoute').value=b.route||'';esbAtolls=b.atolls?[...b.atolls]:(b.atoll?[b.atoll]:[]);renderIslTags($('esbAtollTagsWrap'),esbAtolls,'rmESBA');$('esbActive').value=String(b.active!==false);esbIsls=[...(b.islands||[])];renderIslTags($('esbIslTagsWrap'),esbIsls,'rmESBI');if(b.imageUrl){$('esbPrev').src=b.imageUrl;$('esbPrev').style.display='block'}else $('esbPrev').style.display='none';$('esbMod').classList.add('show')};
+$('esbIslIn').addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===','||e.key===';'){e.preventDefault();const v=this.value.trim().replace(/,|;/g,'');if(v&&!esbIsls.includes(v)){esbIsls.push(v);renderIslTags($('esbIslTagsWrap'),esbIsls,'rmESBI');this.value=''}}});
+window.rmESBI=function(i){esbIsls.splice(i,1);renderIslTags($('esbIslTagsWrap'),esbIsls,'rmESBI')};
+$('esbClose').onclick=$('esbCancel').onclick=()=>$('esbMod').classList.remove('show');
+$('esbConfirm').onclick=async()=>{const b=allSB.find(x=>x.id===eSBId);if(!b)return;const v=$('esbIslIn').value.trim();if(v&&!esbIsls.includes(v))esbIsls.push(v);$('esbIslIn').value='';const vsa=$('esbAtollIn').value.trim();if(vsa&&!esbAtolls.includes(vsa))esbAtolls.push(vsa);$('esbAtollIn').value='';b.name=$('esbName').value;b.route=$('esbRoute').value;b.atolls=[...esbAtolls];b.atoll=esbAtolls[0]||'';b.islands=[...esbIsls];b.active=$('esbActive').value==='true';const f=$('esbImgFile').files[0];if(f){const rd=new FileReader();const p=new Promise(res=>{rd.onload=e=>res(e.target.result);rd.readAsDataURL(f)});b.imageUrl=await p}await db.ref('speedBoats').set(allSB);$('esbMod').classList.remove('show');showToast('Updated','ok')};
+
+
+// ══════ DRIVER MANAGEMENT ══════
+function loadDriverPage(){
+  // Stats
+  const active=allDrivers.filter(d=>d.status==='active').length;
+  const pend=allDrivers.filter(d=>d.status==='pending').length;
+  const total=allDrivers.length;
+  const earnings=allDrivers.reduce((s,d)=>s+(d.totalEarned||0),0);
+  const sg=$('drvStatsG');if(sg)sg.innerHTML=`<div class="sc"><div class="si c"><i class="fas fa-motorcycle"></i></div><div><div class="sv">${total}</div><div class="sl">TOTAL</div></div></div><div class="sc"><div class="si g"><i class="fas fa-check-circle"></i></div><div><div class="sv">${active}</div><div class="sl">ACTIVE</div></div></div><div class="sc"><div class="si a"><i class="fas fa-hourglass-half"></i></div><div><div class="sv">${pend}</div><div class="sl">PENDING</div></div></div><div class="sc"><div class="si r"><i class="fas fa-coins"></i></div><div><div class="sv">${earnings.toFixed(0)}</div><div class="sl">PAID MVR</div></div></div>`;
+  // Driver list
+  const el=$('drvList');if(!el)return;
+  if(!allDrivers.length){el.innerHTML='<div class="empty-s"><i class="fas fa-motorcycle"></i><p>No drivers registered yet.</p></div>';return}
+  el.innerHTML=[...allDrivers].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).map(d=>{
+    const bk=d.bank||{};
+    const unpaid=allD.filter(x=>x.assignedDriverId===d.id&&x.status==='Delivered'&&!x.driverPaid).reduce((s,x)=>s+(x.driverAmount||0),0);
+    return`<div class="p-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:white;font-size:.8rem"><i class="fas fa-motorcycle" style="color:#f39c12;margin-right:5px"></i>${d.name}</div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.38);margin-top:2px">${d.contact} &bull; ${d.vehicle||'—'}</div>
+          <div style="font-size:.63rem;margin-top:2px">Rate: <span style="color:#f39c12">MVR ${d.defaultAmount||0}</span> &bull; Earned: <span style="color:#27ae60">MVR ${d.totalEarned||0}</span> &bull; Unpaid: <span style="color:${unpaid>0?'#e74c3c':'#27ae60'}">MVR ${unpaid.toFixed(0)}</span></div>
+          ${bk.bankName?`<div style="font-size:.62rem;color:rgba(255,255,255,.45);margin-top:2px"><i class="fas fa-university" style="color:#3498db;margin-right:3px"></i>${bk.bankName} &bull; ${bk.accountName||''} &bull; <strong style="color:white">${bk.accountNumber||'—'}</strong></div>`:'<div style="font-size:.62rem;color:rgba(255,255,255,.25);margin-top:2px">No bank details</div>'}
+        </div>
+        <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${d.status==='active'?'b-paid':d.status==='blocked'?'b-pnd':'b-rev'}">${d.status==='active'?'Active':d.status==='blocked'?'Blocked':'Pending'}</span>
+          ${d.status==='pending'?`<button class="a-btn ab-grant" onclick="approveDriver('${d.id}')">Approve</button>`:''}
+          <button class="a-btn ab-view" onclick="openDrvAmt('${d.id}')">Set Rate</button>
+          ${unpaid>0?`<button class="a-btn ab-app" onclick="markDrvPaid('${d.id}')">Pay MVR ${unpaid.toFixed(0)}</button>`:''}
+          ${d.status!=='blocked'?`<button class="a-btn ab-block" onclick="blockDriver('${d.id}')">Block</button>`:`<button class="a-btn ab-grant" onclick="approveDriver('${d.id}')">Unblock</button>`}
+          <button class="a-btn ab-del" onclick="removeDriver('${d.id}')">Remove</button>
+        </div>
+      </div>
+      ${d.idPhoto||d.vehicleRegistry?`<div style="display:flex;gap:7px;flex-wrap:wrap">${d.idPhoto?`<div><div style="font-size:.58rem;color:rgba(255,255,255,.3);margin-bottom:3px">National ID</div><img src="${d.idPhoto}" style="height:52px;border-radius:7px;border:1px solid #2e3f55;cursor:pointer" onclick="viewDoc('${d.idPhoto}')"></div>`:''}${d.vehicleRegistry?`<div><div style="font-size:.58rem;color:rgba(255,255,255,.3);margin-bottom:3px">Vehicle Registry</div><img src="${d.vehicleRegistry}" style="height:52px;border-radius:7px;border:1px solid #2e3f55;cursor:pointer" onclick="viewDoc('${d.vehicleRegistry}')"></div>`:''}</div>`:''}
+    </div>`;
+  }).join('');
+}
+// Show bank details in driver list
+function drvBankBadge(d){const bk=d.bank||{};if(!bk.bankName)return'<span style="font-size:.62rem;color:rgba(255,255,255,.28)">No bank set</span>';return`<span style="font-size:.62rem;color:rgba(255,255,255,.5)">${bk.bankName} · ${bk.accountNumber||'—'}</span>`;}
+
+window.approveDriver=async function(id){const d=allDrivers.find(x=>x.id===id);if(!d)return;d.status='active';await db.ref('drivers').set(allDrivers);pushNDriver('Access Approved','Your driver account is now active. You can accept deliveries.', d.id);showToast('Driver approved','ok')};
+window.blockDriver=async function(id){const d=allDrivers.find(x=>x.id===id);if(!d)return;d.status='blocked';await db.ref('drivers').set(allDrivers);showToast('Blocked','ok')};
+window.removeDriver=async function(id){if(!confirm('Remove driver?'))return;await db.ref('drivers').set(allDrivers.filter(d=>d.id!==id));showToast('Removed','ok')};
+
+let editDrvAmtId=null;
+window.openDrvAmt=function(id){const d=allDrivers.find(x=>x.id===id);if(!d)return;editDrvAmtId=id;$('drvAmtName').textContent=d.name;$('drvAmtVal').value=d.defaultAmount||'';$('drvAmtMod').classList.add('show')};
+$('drvAmtClose').onclick=$('drvAmtCancel').onclick=()=>$('drvAmtMod').classList.remove('show');
+$('drvAmtConfirm').onclick=async()=>{const d=allDrivers.find(x=>x.id===editDrvAmtId);if(!d)return;d.defaultAmount=parseFloat($('drvAmtVal').value)||0;await db.ref('drivers').set(allDrivers);$('drvAmtMod').classList.remove('show');showToast('Amount saved','ok')};
+
+// Assign delivery search
+$('assignSrchBtn').onclick=()=>loadAssignList($('assignSrch').value.trim());
+$('assignSrch').addEventListener('keyup',e=>{if(e.key==='Enter')loadAssignList(e.target.value.trim())});
+function loadAssignList(q=''){
+  const al=$('assignList');if(!al)return;
+  let data=[...allD].filter(d=>d.paymentStatus==='paid'&&d.status!=='Delivered').sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  if(q){const ql=q.toLowerCase();data=data.filter(d=>d.referenceNumber?.toLowerCase().includes(ql)||d.customerName?.toLowerCase().includes(ql))}
+  if(!data.length){al.innerHTML='<div class="empty-s"><i class="fas fa-truck-fast"></i><p>No paid undelivered orders found.</p></div>';return}
+  al.innerHTML=data.map(d=>`<div class="p-item">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:monospace;font-size:.68rem;color:#f39c12">${d.referenceNumber}</div>
+      <div style="font-size:.74rem;font-weight:700;color:white;margin-top:1px">${d.customerName} · ${d.customerContact}</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.4)">${d.pickupLocation||''}→${d.deliveryLocation||''}</div>
+      ${d.assignedDriver?`<div style="font-size:.63rem;color:#3498db;margin-top:2px"><i class="fas fa-motorcycle" style="margin-right:3px"></i>Assigned: ${d.assignedDriver}</div>`:''}
+    </div>
+    <div style="display:flex;gap:5px;align-items:center">
+      ${sBadge(d.status)}
+      <button class="a-btn ab-stat" onclick="openAssign(${d.id})"><i class="fas fa-motorcycle"></i> Assign</button>
+    </div>
+  </div>`).join('');
+}
+window.openAssign=function(id){
+  assignDelId=id;
+  const d=allD.find(x=>x.id===id);if(!d)return;
+  $('assignDelInfo').innerHTML=`<strong style="color:white">${d.referenceNumber}</strong> · ${d.customerName}<br>${d.pickupLocation||''}→${d.deliveryLocation||''}`;
+  const sel=$('drvAssignSel');
+  const active=allDrivers.filter(x=>x.status==='active');
+  sel.innerHTML='<option value="all">All Active Drivers (First to accept gets it)</option>'+active.map(d=>`<option value="${d.id}">${d.name} (MVR ${d.defaultAmount||0})</option>`).join('');
+  // Pre-fill amount from selected driver default or 0
+  $('drvAmtInput').value=d.driverAmount||'';
+  $('assignMod').classList.add('show');
+};
+$('assignClose').onclick=$('assignCancel').onclick=()=>$('assignMod').classList.remove('show');
+$('assignConfirm').onclick=async()=>{
+  const d=allD.find(x=>x.id===assignDelId);if(!d)return;
+  const sel=$('drvAssignSel').value;
+  const amt=parseFloat($('drvAmtInput').value)||0;
+  d.driverAmount=amt;
+  d.driverAssignTime=new Date().toISOString();
+  if(sel==='all'){
+    d.assignedDriver='';d.assignedDriverId='';d.driverStatus='open';
+    // Notify all active drivers
+    allDrivers.filter(x=>x.status==='active').forEach(drv=>{
+      pushNDriver('New Delivery Available!',`Ref: ${d.referenceNumber} · ${d.pickupLocation||''}→${d.deliveryLocation||''} · MVR ${amt} — Tap to accept!`,drv.id);
+    });
+    showToast('Assigned to all drivers','ok');
+  } else {
+    const drv=allDrivers.find(x=>x.id===sel);
+    if(!drv){showToast('Driver not found','err');return}
+    d.assignedDriver=drv.name;d.assignedDriverId=drv.id;d.driverStatus='assigned';
+    pushNDriver('Delivery Assigned to You',`Ref: ${d.referenceNumber} · ${d.pickupLocation||''}→${d.deliveryLocation||''} · MVR ${amt}`,drv.id);
+    showToast('Assigned to '+drv.name,'ok');
+  }
+  await db.ref('cargoDeliveries').set(allD);
+  $('assignMod').classList.remove('show');
+  loadAssignList($('assignSrch').value.trim());
+};
+$('drvAssignSel').addEventListener('change',function(){
+  if(this.value!=='all'){const drv=allDrivers.find(x=>x.id===this.value);if(drv&&drv.defaultAmount)$('drvAmtInput').value=drv.defaultAmount;}
+});
+
+window.markDrvPaid=async function(drvId){
+  if(!confirm('Mark all unpaid deliveries as paid for this driver?'))return;
+  allD.forEach(d=>{if(d.assignedDriverId===drvId&&d.status==='Delivered'&&!d.driverPaid)d.driverPaid=true;});
+  await db.ref('cargoDeliveries').set(allD);
+  const drivers=toArr((await db.ref('drivers').once('value')).val());
+  const drv=drivers.find(x=>x.id===drvId);
+  if(drv){pushNDriver('Payment Received','Your earnings have been paid. Thank you!',drvId);}
+  showToast('Marked as paid','ok');
+  loadDriverPage();
+};
+window.viewDoc=function(src){$('slipImg').src=src;$('slipMod').classList.add('show')};
+function pushNDriver(title,msg,driverId){
+  const n={id:Date.now(),title,message:msg,driverId,timestamp:new Date().toISOString(),read:false};
+  db.ref('driverNotifications').push(n);
+}
+
+function doLogout(){localStorage.removeItem('ecAdmin');me=null;$('adminApp').style.display='none';$('loginScreen').style.display='flex'}
+</script>
+</body>
+</html>
