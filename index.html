@@ -299,6 +299,7 @@ a{color:#f39c12;text-decoration:none}
       <div class="s-item" onclick="goPage('pickups')"><i class="fas fa-map-marker-alt"></i> Pickup Locations</div>
       <div class="s-item" onclick="goPage('routes')"><i class="fas fa-route"></i> Route Pricing</div>
       <div class="s-item" onclick="goPage('boatroutes')"><i class="fas fa-ship"></i> Boat Pricing</div>
+      <div class="s-item" onclick="goPage('manualprices')"><i class="fas fa-hand-holding-dollar"></i> Manual Boat Prices</div>
       <div class="s-item" onclick="goPage('boats')"><i class="fas fa-anchor"></i> Boats &amp; Speed Boats</div>
       <div class="s-item" onclick="goPage('cargotypes')"><i class="fas fa-box"></i> Cargo Types</div>
       <div class="s-item" onclick="goPage('express')"><i class="fas fa-bolt"></i> Express Sizes &amp; Pricing</div>
@@ -378,13 +379,13 @@ a{color:#f39c12;text-decoration:none}
     </div>
     <!-- BOAT ROUTE PRICING -->
     <div class="page" id="page-boatroutes">
-      <div class="route-info-box" style="background:rgba(52,152,219,.07);border-color:rgba(52,152,219,.18)"><i class="fas fa-ship" style="color:#3498db"></i><div>Set price for each <strong style="color:white">Pickup Location &rarr; Boat Harbour &rarr; Boat</strong>. The user selects a pickup, then selects the boat's harbour, then selects the boat — and this price is applied.</div></div>
+      <div class="route-info-box" style="background:rgba(52,152,219,.07);border-color:rgba(52,152,219,.18)"><i class="fas fa-ship" style="color:#3498db"></i><div>Set price for each <strong style="color:white">Pickup Location &rarr; Boat Harbour &rarr; Boat</strong>. The user selects a pickup, then selects the boat's harbour, then selects the boat &mdash; and this price is applied.</div></div>
 
       <!-- MANAGE BOAT HARBOURS -->
       <div class="card"><div class="c-hd"><div class="c-ico" style="background:rgba(52,152,219,.11);border-color:rgba(52,152,219,.22)"><i class="fas fa-anchor" style="color:#3498db"></i></div><h3>Manage Boat Harbours</h3></div>
         <p style="font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:.7rem;line-height:1.6">Add all harbour names here. These appear as selectable options when setting boat prices and when the user selects a boat manually.</p>
         <div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:.6rem">
-          <input type="text" id="newHarbourName" placeholder="e.g. Male North Harbour, Hulhumale Harbour…" style="padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+          <input type="text" id="newHarbourName" placeholder="e.g. Male North Harbour, Hulhumale Harbour&#8230;" style="padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;outline:none;font-family:inherit">
           <button class="btn-add blue" onclick="addHarbour()"><i class="fas fa-plus"></i> Add Harbour</button>
         </div>
         <div id="harbourList" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px"></div>
@@ -398,7 +399,6 @@ a{color:#f39c12;text-decoration:none}
             <div class="fgsm"><label>1. Pickup Location</label><select id="brPickup" onchange="loadBRBoats()"><option value="">&#8212; Select Pickup &#8212;</option></select></div>
             <div class="fgsm"><label>2. Boat Harbour</label><select id="brHarbour" onchange="loadBRBoats()"><option value="">&#8212; Select Harbour &#8212;</option></select></div>
           </div>
-          <!-- Boats for this harbour (chips) -->
           <div id="brBoatSection" style="margin-bottom:8px">
             <div class="fgsm"><label>3. Boat / Speed Boat <span style="font-weight:400;color:rgba(255,255,255,.3);text-transform:none;letter-spacing:0">(boats at this harbour)</span></label>
               <div id="brBoatChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
@@ -411,11 +411,11 @@ a{color:#f39c12;text-decoration:none}
             <button class="btn-add blue" id="addBoatRouteBtn" style="align-self:flex-end"><i class="fas fa-plus"></i> Save Price</button>
           </div>
         </div>
-        <div class="route-filter-row"><input type="text" id="boatRouteFilter" placeholder="Filter by pickup, harbour or boat…" oninput="renderBoatRouteTable()"></div>
+        <div class="route-filter-row"><input type="text" id="boatRouteFilter" placeholder="Filter by pickup, harbour or boat&#8230;" oninput="renderBoatRouteTable()"></div>
         <div class="route-table-wrap"><table class="route-table"><thead><tr><th>Pickup</th><th>Harbour</th><th>Boat</th><th>Price (MVR)</th><th>Actions</th></tr></thead><tbody id="boatRouteTB"></tbody></table></div>
       </div>
     </div>
-    <!-- BOATS & SPEED BOATS -->
+        <!-- BOATS & SPEED BOATS -->
     <div class="page" id="page-boats">
       <div class="sub-tabs"><button class="sub-tab active" onclick="switchBoatTab('boats')"><i class="fas fa-ship"></i> Boats</button><button class="sub-tab" onclick="switchBoatTab('speedboats')"><i class="fas fa-bolt"></i> Speed Boats</button></div>
       <div class="sub-pane active" id="subBoats"><div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-plus"></i></div><h3>Add Boat</h3></div>
@@ -491,6 +491,25 @@ a{color:#f39c12;text-decoration:none}
       <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-trophy"></i></div><h3>Monthly Leaderboard</h3></div><div id="adminLeaderboard"><div class="empty-s"><i class="fas fa-trophy"></i><p>Loading…</p></div></div></div>
       <div class="card"><div class="c-hd"><div class="c-ico"><i class="fas fa-users"></i></div><h3>All Users — Rewards Overview</h3></div><div id="rewardUserList"><div class="empty-s"><i class="fas fa-medal"></i><p>Loading…</p></div></div></div>
     </div>
+  <!-- MANUAL BOAT PRICES PAGE -->
+    <div class="page" id="page-manualprices">
+      <div class="route-info-box" style="background:rgba(243,156,18,.07);border-color:rgba(243,156,18,.18)">
+        <i class="fas fa-hand-holding-dollar" style="color:#f39c12"></i>
+        <div>Set prices shown <strong style="color:white">only in Enter Manually mode</strong> for Boat and Speed Boat. Price = Pickup Location + Harbour combination. Users who type manually will see this price automatically.</div>
+      </div>
+      <div class="card">
+        <div class="c-hd"><div class="c-ico" style="background:rgba(243,156,18,.11);border-color:rgba(243,156,18,.22)"><i class="fas fa-plus" style="color:#f39c12"></i></div><h3>Add Manual Price</h3></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div class="fgsm"><label>Pickup Location</label><select id="mpPickup" style="padding:9px 11px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;width:100%;outline:none"><option value="">&#8212; Select Pickup &#8212;</option></select></div>
+          <div class="fgsm"><label>Boat Harbour</label><select id="mpHarbour" style="padding:9px 11px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;width:100%;outline:none"><option value="">&#8212; Select Harbour &#8212;</option></select></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:.75rem">
+          <div class="fgsm"><label>Price (MVR)</label><input type="number" id="mpPrice" placeholder="e.g. 80" min="0" value="0" style="padding:9px 11px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.8rem;width:100%;outline:none"></div>
+          <button class="btn-add" id="addManualPriceBtn" style="background:#f39c12;align-self:flex-end"><i class="fas fa-save"></i> Save Price</button>
+        </div>
+        <div id="manualPriceList"></div>
+      </div>
+    </div>
   </div>
 </div>
 <!-- MODALS -->
@@ -507,7 +526,7 @@ const fbCfg={apiKey:"AIzaSyCZA8Z9AJcC97CyQUZVCRsljTuYBfxjHMw",authDomain:"easyca
 firebase.initializeApp(fbCfg);
 const db=firebase.database();
 const ADMIN_USER='Admin',ADMIN_PASS='8555';
-let me=null,allD=[],allU=[],allP=[],allN=[],allBoats=[],allSpeedBoats=[],allPickups=[],allCT=[],allExpressSizes=[],allTimePrices=[],allDlocs=[],allFloorPrices=[],allRoutePrices=[],allBoatRoutePrices=[],siteSettings={},eDelId=null,eBoatId=null,eSBId=null,rvChart=null,editRouteId=null,editBoatRouteId=null;
+let me=null,allD=[],allU=[],allP=[],allN=[],allBoats=[],allSpeedBoats=[],allPickups=[],allCT=[],allExpressSizes=[],allTimePrices=[],allDlocs=[],allFloorPrices=[],allRoutePrices=[],allBoatRoutePrices=[],allManualBoatPrices=[],siteSettings={},eDelId=null,eBoatId=null,eSBId=null,rvChart=null,editRouteId=null,editBoatRouteId=null;
 const $=id=>document.getElementById(id);
 function toArr(d){return d?(Array.isArray(d)?d:Object.values(d)):[]}
 function fmtD(d){return d?new Date(d).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}):'—'}
@@ -547,6 +566,7 @@ function initFB(){
   db.ref('floorPrices').on('value',snap=>{allFloorPrices=toArr(snap.val());loadFloorList()});
   db.ref('routePrices').on('value',snap=>{allRoutePrices=toArr(snap.val());renderRouteTable()});
   db.ref('boatRoutePrices').on('value',snap=>{allBoatRoutePrices=toArr(snap.val());renderBoatRouteTable()});
+  db.ref('manualBoatPrices').on('value',snap=>{allManualBoatPrices=toArr(snap.val());if($('page-manualprices')?.classList.contains('active'))loadManualPricePage();});
   db.ref('siteSettings').on('value',snap=>{siteSettings=snap.val()||{};loadHomePageSettings()});
 }
 function refresh(){const a=document.querySelector('.page.active');if(!a)return;const id=a.id;if(id==='page-dashboard')loadDash();else if(id==='page-records')loadRecords();else if(id==='page-revenue')loadRevenue()}
@@ -557,9 +577,9 @@ window.goPage=function(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.s-item').forEach(i=>i.classList.remove('active'));
   $('page-'+pg)?.classList.add('active');
-  const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',pickups:'Pickup Locations',routes:'Route Pricing',boatroutes:'Boat Route Pricing',boats:'Boats & Speed Boats',cargotypes:'Cargo Types',express:'Express Sizes & Pricing',prices:'Weight Ranges',capacity:'Daily Capacity',rewards:'Rewards & Points',users:'Users & Access'};
+  const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',pickups:'Pickup Locations',routes:'Route Pricing',boatroutes:'Boat Route Pricing',manualprices:'Manual Boat Prices',boats:'Boats & Speed Boats',cargotypes:'Cargo Types',express:'Express Sizes & Pricing',prices:'Weight Ranges',capacity:'Daily Capacity',rewards:'Rewards & Points',users:'Users & Access'};
   $('pgTitle').textContent=names[pg]||pg;
-  if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='express')loadExpressPage();else if(pg==='rewards')loadRewardsPage();else if(pg==='routes'){populateRouteSelects();renderRouteTable();}else if(pg==='boatroutes'){populateBoatRouteSelects();renderBoatRouteTable();setTimeout(loadBRBoats,100);}else if(pg==='cargotypes')loadCtList();else if(pg==='pickups'){loadLocList();loadPickupAssignQuick();}
+  if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='express')loadExpressPage();else if(pg==='rewards')loadRewardsPage();else if(pg==='routes'){populateRouteSelects();renderRouteTable();}else if(pg==='boatroutes'){populateBoatRouteSelects();renderBoatRouteTable();setTimeout(loadBRBoats,100);}else if(pg==='manualprices'){loadManualPricePage();}else if(pg==='cargotypes')loadCtList();else if(pg==='pickups'){loadLocList();loadPickupAssignQuick();}
   closeSB()
 };
 window.switchBoatTab=function(tab){document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.sub-pane').forEach(p=>p.classList.remove('active'));if(tab==='boats'){$('subBoats').classList.add('active');document.querySelectorAll('.sub-tab')[0].classList.add('active')}else{$('subSpeedboats').classList.add('active');document.querySelectorAll('.sub-tab')[1].classList.add('active')}};
@@ -788,12 +808,10 @@ window.rmFloor=async function(id){if(!confirm('Remove?'))return;await db.ref('fl
 ══════════════════════════════════════════ */
 let allBoatHarbours=[];
 
-/* ── Harbour management ── */
 function loadHarbourList(){
   const el=$('harbourList');if(!el)return;
   if(!allBoatHarbours.length){el.innerHTML='<span style="font-size:.72rem;color:rgba(255,255,255,.28);font-style:italic">No harbours added yet.</span>';return;}
   el.innerHTML=allBoatHarbours.map((h,i)=>`<span class="isl-tag" style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;font-size:.74rem"><i class="fas fa-anchor" style="color:#3498db;font-size:.6rem"></i>${h}<button onclick="rmHarbour(${i})" type="button" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:.65rem;padding:0;line-height:1;margin-left:2px">&#215;</button></span>`).join('');
-  // Refresh all harbour selects
   populateAllHarbourSelects();
 }
 window.addHarbour=async function(){
@@ -812,24 +830,21 @@ window.rmHarbour=async function(i){
   showToast('Removed','ok');
 };
 function populateAllHarbourSelects(){
-  const opts='<option value="">&#8212; Select Harbour &#8212;</option>'+allBoatHarbours.map(h=>`<option value="${h}">${h}</option>`).join('');
+  const opts='<option value="">— Select Harbour —</option>'+allBoatHarbours.map(h=>`<option value="${h}">${h}</option>`).join('');
   ['brHarbour'].forEach(id=>{const el=$(id);if(el){const cv=el.value;el.innerHTML=opts;if(cv)el.value=cv;}});
   loadBRBoats();
 }
 
-/* ── Boat Route Pricing Selects ── */
 function populateBoatRouteSelects(){
   const pu=$('brPickup');if(!pu)return;
   const cp=pu.value;
-  pu.innerHTML='<option value="">&#8212; Select Pickup &#8212;</option>'+allPickups.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+  pu.innerHTML='<option value="">— Select Pickup —</option>'+allPickups.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
   if(cp)pu.value=cp;
   populateAllHarbourSelects();
 }
 
-/* ── When pickup or harbour changes: show ALL boats as chips ── */
 window.loadBRBoats=function(){
-  const chips=$('brBoatChips');
-  if(!chips)return;
+  const chips=$('brBoatChips');if(!chips)return;
   const harbour=$('brHarbour')?.value||'';
   const pickup=$('brPickup')?.value||'';
   const allB=[
@@ -863,8 +878,6 @@ window.selectBRBoat=function(btn){
   const ex=allBoatRoutePrices.find(r=>r.pickup===pickup&&r.harbour===harbour&&r.boatName===bName&&r.boatType===bType);
   if($('brPrice'))$('brPrice').value=ex?ex.price:'0';
 };
-
-/* ── Render boat price table ── */
 function renderBoatRouteTable(){
   const tb=$('boatRouteTB');if(!tb)return;
   const q=($('boatRouteFilter')?.value||'').toLowerCase();
@@ -896,12 +909,9 @@ $('addBoatRouteBtn').onclick=async function(){
     allBoatRoutePrices.push({id:String(Date.now()),pickup,harbour,boatName,boatType,price});
     await db.ref('boatRoutePrices').set(allBoatRoutePrices);showToast('Price saved ✅','ok');
   }
-  // Reset selections but keep boats visible
   if($('brBoat'))$('brBoat').value='';if($('brBoatType'))$('brBoatType').value='';
   $('brPrice').value='0';
-  // Deselect boat chip
   if($('brBoatChips'))$('brBoatChips').querySelectorAll('.pac-btn').forEach(b=>b.classList.remove('on'));
-  // Reload boat chips to show updated prices
   loadBRBoats();
 };
 window.openEditBoatRoute=function(id){
@@ -915,6 +925,9 @@ window.openEditBoatRoute=function(id){
 $('editBRClose').onclick=$('editBRCancel').onclick=()=>{$('editBoatRouteMod').classList.remove('show');editBoatRouteId=null};
 $('editBRConfirm').onclick=async()=>{const r=allBoatRoutePrices.find(x=>x.id===editBoatRouteId);if(!r)return;r.price=parseFloat($('ebrPrice').value)||0;await db.ref('boatRoutePrices').set(allBoatRoutePrices);$('editBoatRouteMod').classList.remove('show');editBoatRouteId=null;showToast('Updated ✅','ok');};
 window.rmBoatRoute=async function(id){const r=allBoatRoutePrices.find(x=>x.id===id);if(!r||!confirm(`Remove "${r.pickup} → ${r.harbour||''} → ${r.boatName}"?`))return;await db.ref('boatRoutePrices').set(allBoatRoutePrices.filter(x=>x.id!==id));showToast('Removed','ok');};
+
+
+
 
 
 /* ── BOAT LOCATIONS (name+price objects) ── */
@@ -1062,7 +1075,69 @@ function loadRewardsPage(){
 }
 $('savePtsBtn').onclick=async()=>{const vals={pointsOnRegister:parseInt($('ptsOnReg')?.value)||50,pointsPerDelivery:parseInt($('ptsPerDel')?.value)||10,pointsPerReferral:parseInt($('ptsPerRef')?.value)||10,discountPerPoints:parseInt($('ptsForDisc')?.value)||100,discountPercent:parseInt($('discPct')?.value)||5};Object.assign(siteSettings,vals);await db.ref('siteSettings').set(siteSettings);showToast('Rewards settings saved ✅','ok');if($('ptsSettingStatus'))$('ptsSettingStatus').textContent=`Register: ${vals.pointsOnRegister}pts · Delivery: ${vals.pointsPerDelivery}pts · Referral: ${vals.pointsPerReferral}pts · ${vals.discountPerPoints}pts = ${vals.discountPercent}% off`;};
 $('awardPtsBtn').onclick=async()=>{const email=$('rewardUserSel')?.value;const ptsRaw=parseInt($('awardPts')?.value)||0;const note=$('awardNote')?.value.trim()||'Admin Award';if(!email){showToast('Select a user','err');return}if(ptsRaw===0){showToast('Enter points','err');return}const key=email.replace(/\./g,'_');const snap=await db.ref('userRewards/'+key).once('value');const rd=snap.val()||{points:0,history:[],referralCode:'',referralCount:0};rd.points=Math.max(0,(rd.points||0)+ptsRaw);rd.history=rd.history||[];rd.history.push({pts:ptsRaw,note,date:new Date().toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'}),ref:'Admin'});await db.ref('userRewards/'+key).set(rd);pushN(ptsRaw>0?'🎉 Points Awarded!':'⚠️ Points Adjusted',(ptsRaw>0?'You earned +'+ptsRaw:ptsRaw+' points adjusted')+' — '+note+'. Total: '+rd.points+' pts',email);showToast((ptsRaw>0?'Awarded +':'Adjusted ')+ptsRaw+' pts ✅','ok');if($('awardPts'))$('awardPts').value='';if($('awardNote'))$('awardNote').value='';loadRewardsPage();};
+/* ══════════════════════════════════════════
+   MANUAL BOAT PRICES  (Firebase: manualBoatPrices)
+   Structure: {id, pickup, harbour, price}
+   Shown ONLY in Enter Manually mode on index.html
+══════════════════════════════════════════ */
+function loadManualPricePage(){
+  // Populate selects
+  const pu=$('mpPickup');const ph=$('mpHarbour');
+  if(pu){
+    const cv=pu.value;
+    pu.innerHTML='<option value="">&#8212; Select Pickup &#8212;</option>'+allPickups.map(p=>`<option value="${p.name}">${p.name}</option>`).join('');
+    if(cv)pu.value=cv;
+  }
+  if(ph){
+    const cv=ph.value;
+    ph.innerHTML='<option value="">&#8212; Select Harbour &#8212;</option>'+allBoatHarbours.map(h=>`<option value="${h}">${h}</option>`).join('');
+    if(cv)ph.value=cv;
+  }
+  // Render list
+  const el=$('manualPriceList');if(!el)return;
+  if(!allManualBoatPrices.length){
+    el.innerHTML='<div class="empty-s"><i class="fas fa-hand-holding-dollar"></i><p>No manual prices set yet.</p></div>';return;
+  }
+  el.innerHTML=allManualBoatPrices.map(r=>`
+    <div class="p-item">
+      <div style="flex:1">
+        <span style="font-weight:700;color:#3498db;font-size:.78rem"><i class="fas fa-map-marker-alt" style="margin-right:5px"></i>${r.pickup}</span>
+        <span style="color:rgba(255,255,255,.3);margin:0 7px">→</span>
+        <span style="font-weight:700;color:#f39c12;font-size:.78rem"><i class="fas fa-anchor" style="margin-right:4px;font-size:.65rem"></i>${r.harbour}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="price-tag">MVR ${r.price}</span>
+        <button class="a-btn ab-del" onclick="rmManualPrice('${r.id}')">Remove</button>
+      </div>
+    </div>`).join('');
+}
+$('addManualPriceBtn').onclick=async function(){
+  const pickup=$('mpPickup').value.trim();
+  const harbour=$('mpHarbour').value.trim();
+  const price=parseFloat($('mpPrice').value)||0;
+  if(!pickup){showToast('Select a pickup location','err');return}
+  if(!harbour){showToast('Select a harbour','err');return}
+  if(!price){showToast('Enter a price','err');return}
+  const ex=allManualBoatPrices.find(r=>r.pickup===pickup&&r.harbour===harbour);
+  if(ex){
+    ex.price=price;
+    await db.ref('manualBoatPrices').set(allManualBoatPrices);
+    showToast('Price updated ✅','ok');
+  }else{
+    allManualBoatPrices.push({id:String(Date.now()),pickup,harbour,price});
+    await db.ref('manualBoatPrices').set(allManualBoatPrices);
+    showToast('Manual price saved ✅','ok');
+  }
+  $('mpPickup').value='';$('mpHarbour').value='';$('mpPrice').value='0';
+};
+window.rmManualPrice=async function(id){
+  if(!confirm('Remove this price?'))return;
+  await db.ref('manualBoatPrices').set(allManualBoatPrices.filter(r=>r.id!==id));
+  showToast('Removed','ok');
+};
+// Also refresh manual price selects when harbours or pickups update
 window.resetUserPts=async function(email){if(!confirm('Reset ALL points for this user to 0?'))return;const key=email.replace(/\./g,'_');const snap=await db.ref('userRewards/'+key).once('value');const rd=snap.val()||{};rd.points=0;rd.history=[];await db.ref('userRewards/'+key).set(rd);showToast('Points reset to 0','ok');loadRewardsPage();};
+
 </script>
 </body>
 </html>
