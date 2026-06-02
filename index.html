@@ -1352,7 +1352,7 @@ function initFB(){
   db.ref('airDestinations').on('value',snap=>{allAirDestinations=toArr(snap.val());renderAirDestTable();});
   db.ref('airWeightRanges').on('value',snap=>{allAirWeightRanges2=toArr(snap.val());loadAirWeightList();});
   db.ref('airPickupLocations').on('value',snap=>{allAirPickupLocations=toArr(snap.val());loadAirPickupLocList();});
-  db.ref('siteSettings').on('value',snap=>{siteSettings=snap.val()||{};loadHomePageSettings();loadSiteConfig();loadPricingGroupList();loadCapPage();loadRewardsPage();});
+  db.ref('siteSettings').on('value',snap=>{siteSettings=snap.val()||{};loadHomePageSettings();loadSiteConfig();loadPricingGroupList();loadCapPage();loadRewardsPage();loadSmsPage();});
 }
 
 /* ═══ NAV ═══ */
@@ -3271,7 +3271,11 @@ async function saveTwilioSettings(){
 
   try{
     const cfg={sid,token,from,msgSid};
+    // Save to sub-path (most reliable)
     await db.ref('siteSettings/twilioConfig').set(cfg);
+    // Also update local immediately so form persists
+    if(!siteSettings)siteSettings={};
+    siteSettings.twilioConfig=cfg;
     // Update local siteSettings
     if(!siteSettings)siteSettings={};
     siteSettings.twilioConfig=cfg;
