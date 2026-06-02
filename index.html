@@ -333,6 +333,7 @@ a{color:#f39c12;text-decoration:none}
       <div class="s-item" data-page="sms" onclick="goPage('sms')"><i class="fas fa-sms"></i> SMS Notifications</div>
       <div class="s-lbl">DRIVERS</div>
       <div class="s-item" data-page="drivers" onclick="goPage('drivers')"><i class="fas fa-truck-fast"></i> Driver Accounts</div>
+      <div class="s-item" data-page="driverearnings" onclick="goPage('driverearnings')"><i class="fas fa-route"></i> Driver Earnings</div>
       <div class="s-item" data-page="driverpayments" onclick="goPage('driverpayments')"><i class="fas fa-money-bill-wave"></i> Driver Payments</div>
       <div class="s-lbl">ACCESS</div>
       <div class="s-item" data-page="users" onclick="goPage('users')"><i class="fas fa-users-gear"></i> Staff Access</div>
@@ -1111,7 +1112,7 @@ firebase deploy --only functions</pre>
   <div class="card">
     <div class="c-hd"><div class="c-ico" style="background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.2)"><i class="fas fa-sliders" style="color:#f39c12"></i></div><h3>Driver Settings</h3></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
-      <div class="fgsm"><label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Pay Per Delivery (MVR)</label>
+      <div class="fgsm"><label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Default Pay Per Delivery (MVR)</label>
         <input type="number" id="drvRateInput" placeholder="50" min="0" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.84rem;outline:none;font-family:monospace">
       </div>
       <div class="fgsm"><label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Payment Cycle</label>
@@ -1123,6 +1124,33 @@ firebase deploy --only functions</pre>
       </div>
     </div>
     <button onclick="saveDriverSettings()" style="background:#f39c12;color:#1e2a3a;border:none;border-radius:22px;padding:10px 22px;font-weight:700;font-size:.82rem;cursor:pointer"><i class="fas fa-save"></i> Save Settings</button>
+  </div>
+
+  <!-- Route-Based Earnings card -->
+  <div class="card">
+    <div class="c-hd"><div class="c-ico" style="background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2)"><i class="fas fa-route" style="color:#27ae60"></i></div><h3>Route-Based Driver Earnings</h3><span style="font-size:.65rem;color:rgba(255,255,255,.3);margin-left:auto">Set different pay per route</span></div>
+    <p style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.75rem">Override the default pay rate for specific pickup → delivery routes.</p>
+    <!-- Add route rate -->
+    <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:7px;align-items:end;margin-bottom:.75rem">
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4)">Pickup Location</label>
+        <select id="drvRoutePickup" style="width:100%;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;font-family:inherit">
+          <option value="">Select pickup</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4)">Delivery Location</label>
+        <select id="drvRouteDest" style="width:100%;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;font-family:inherit">
+          <option value="">Select destination</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4)">Pay (MVR)</label>
+        <input type="number" id="drvRouteRate" placeholder="50" min="0" style="width:80px;padding:9px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.82rem;outline:none;font-family:monospace">
+      </div>
+      <button onclick="addRouteRate()" style="background:#27ae60;color:white;border:none;border-radius:17px;padding:9px 14px;font-weight:700;cursor:pointer;align-self:flex-end"><i class="fas fa-plus"></i></button>
+    </div>
+    <div id="routeRatesList"></div>
   </div>
 
   <!-- Vehicle Types card -->
@@ -1169,6 +1197,55 @@ firebase deploy --only functions</pre>
   </div>
 </div>
 
+<!-- ═══ DRIVER EARNINGS ROUTES PAGE ═══ -->
+<div id="page-driverearnings" class="page" style="padding:.9rem;padding-bottom:5.5rem">
+  <div class="card">
+    <div class="c-hd">
+      <div class="c-ico" style="background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2)"><i class="fas fa-coins" style="color:#27ae60"></i></div>
+      <h3>Default Pay Rate</h3>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
+      <div class="fgsm">
+        <label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Default Pay Per Delivery (MVR)</label>
+        <input type="number" id="drvRateInput2" placeholder="50" min="0" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.84rem;outline:none;font-family:monospace">
+      </div>
+      <div class="fgsm">
+        <label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Payment Cycle</label>
+        <select id="drvPayCycle2" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.8rem;outline:none;font-family:inherit">
+          <option value="daily">Daily (24hrs)</option>
+          <option value="weekly">Weekly</option>
+          <option value="manual">Manual</option>
+        </select>
+      </div>
+    </div>
+    <button onclick="saveDriverEarnings()" style="background:#27ae60;color:white;border:none;border-radius:22px;padding:10px 22px;font-weight:700;font-size:.82rem;cursor:pointer"><i class="fas fa-save"></i> Save</button>
+  </div>
+  <div class="card">
+    <div class="c-hd">
+      <div class="c-ico" style="background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.2)"><i class="fas fa-route" style="color:#f39c12"></i></div>
+      <h3>Route-Based Driver Earnings</h3>
+      <span style="font-size:.65rem;color:rgba(255,255,255,.3);margin-left:auto">Override pay per route</span>
+    </div>
+    <p style="font-size:.72rem;color:rgba(255,255,255,.4);margin-bottom:.75rem">Set a different pay rate for specific Pickup → Delivery routes. Falls back to default for unspecified routes.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px 42px;gap:7px;align-items:end;margin-bottom:.75rem">
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4);display:block;margin-bottom:.25rem">📍 Pickup</label>
+        <select id="drvRoutePickup2" style="width:100%;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;font-family:inherit"><option value="">Select pickup</option></select>
+      </div>
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4);display:block;margin-bottom:.25rem">🏁 Delivery</label>
+        <select id="drvRouteDest2" style="width:100%;padding:9px 12px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.78rem;outline:none;font-family:inherit"><option value="">Select destination</option></select>
+      </div>
+      <div>
+        <label style="font-size:.65rem;color:rgba(255,255,255,.4);display:block;margin-bottom:.25rem">MVR</label>
+        <input type="number" id="drvRouteRate2" placeholder="50" min="0" style="width:100%;padding:9px 10px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:17px;color:white;font-size:.82rem;outline:none;font-family:monospace">
+      </div>
+      <button onclick="addRouteRate2()" style="background:#f39c12;color:#1e2a3a;border:none;border-radius:17px;padding:9px 0;font-weight:800;cursor:pointer;width:100%;font-size:1rem">+</button>
+    </div>
+    <div id="routeRatesList2" style="margin-top:.25rem"></div>
+  </div>
+</div>
+
 <!-- ═══ DRIVER PAYMENTS PAGE ═══ -->
 <div id="page-driverpayments" class="page" style="padding:.9rem;padding-bottom:5.5rem;min-height:100vh">
   <div class="card">
@@ -1207,6 +1284,28 @@ firebase deploy --only functions</pre>
   </div>
 </div>
 
+<!-- REJECT DRIVER MODAL -->
+<div class="modal-overlay" id="rejectDriverMod" style="z-index:4000">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-hd">
+      <div class="modal-title"><i class="fas fa-times-circle" style="color:#e74c3c"></i> Reject Driver & Send Reason</div>
+      <button class="close-btn" onclick="$('rejectDriverMod').classList.remove('show')"><i class="fas fa-times"></i></button>
+    </div>
+    <p style="font-size:.75rem;color:rgba(255,255,255,.5);margin-bottom:.75rem">This message will appear in <strong style="color:#e74c3c">red</strong> on the driver's screen and be sent via SMS.</p>
+    <div class="fg">
+      <label style="font-size:.72rem;color:rgba(255,255,255,.45)">Rejection Reason / Issue Details</label>
+      <textarea id="rejectReasonInput" placeholder="e.g. Your ID photo is blurry. Please re-upload a clear photo of the front of your ID card." style="width:100%;min-height:100px;padding:10px 14px;background:#1e2a3a;border:1px solid rgba(231,76,60,.3);border-radius:14px;color:white;font-size:.82rem;outline:none;font-family:inherit;resize:vertical;line-height:1.5;margin-top:.3rem"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:.75rem">
+      <button onclick="$('rejectDriverMod').classList.remove('show')" class="btn btn-sec" style="flex:1">Cancel</button>
+      <button onclick="confirmRejectDriver()" class="btn" style="flex:2;background:rgba(231,76,60,.2);border:1.5px solid rgba(231,76,60,.4);color:#e74c3c;border-radius:35px;font-weight:700;cursor:pointer">
+        <i class="fas fa-times-circle"></i> Reject + Notify Driver
+      </button>
+    </div>
+    <input type="hidden" id="rejectDriverId">
+  </div>
+</div>
+
 <div class="toast" id="toast"><div class="t-ico"><i class="fas fa-info-circle"></i></div><div class="t-msg" id="tTxt"></div></div>
 
 <script>
@@ -1221,7 +1320,7 @@ const ACCESS_LEVELS={
     label:'Administrator',
     color:'#e74c3c',
     icon:'fa-shield-halved',
-    pages:['dashboard','revenue','records','track','homepage','siteconfig','pickups','routes','boatroutes','manualprices','boats','cargotypes','express','prices','aircargo','capacity','rewards','sms','users','drivers','driverpayments'],
+    pages:['dashboard','revenue','records','track','homepage','siteconfig','pickups','routes','boatroutes','manualprices','boats','cargotypes','express','prices','aircargo','capacity','rewards','sms','users','drivers','driverearnings','driverpayments'],
     canDelete:true,
     canApprove:true,
     canUpdateStatus:true,
@@ -1231,7 +1330,7 @@ const ACCESS_LEVELS={
     label:'Manager',
     color:'#9b59b6',
     icon:'fa-user-tie',
-    pages:['dashboard','revenue','records','track','pickups','routes','boats','cargotypes','capacity','rewards','sms','drivers','driverpayments'],
+    pages:['dashboard','revenue','records','track','pickups','routes','boats','cargotypes','capacity','rewards','sms','drivers','driverearnings','driverpayments'],
     canDelete:false,
     canApprove:true,
     canUpdateStatus:true,
@@ -1241,7 +1340,7 @@ const ACCESS_LEVELS={
     label:'Staff',
     color:'#3498db',
     icon:'fa-user',
-    pages:['dashboard','records','track','sms'],
+    pages:['dashboard','records','track','sms','drivers','driverearnings'],
     canDelete:false,
     canApprove:false,
     canUpdateStatus:true,
@@ -1251,7 +1350,7 @@ const ACCESS_LEVELS={
     label:'Viewer',
     color:'#27ae60',
     icon:'fa-eye',
-    pages:['dashboard','records','track'],
+    pages:['dashboard','records','track','driverearnings'],
     canDelete:false,
     canApprove:false,
     canUpdateStatus:false,
@@ -1365,7 +1464,8 @@ window.goPage=function(pg){
   $('page-'+pg)?.classList.add('active');
   const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',siteconfig:'Site Settings',pickups:'Pickup Locations',routes:'Route Pricing',boatroutes:'Boat Route Pricing',manualprices:'Manual Boat Prices',boats:'Boats & Speed Boats',cargotypes:'Cargo Types',express:'Express Sizes & Pricing',prices:'Weight Ranges',aircargo:'Air Cargo',capacity:'Daily Capacity',rewards:'Rewards & Points',users:'Staff Access',drivers:'Driver Accounts',driverpayments:'Driver Payments',sms:'SMS Notifications'};
   $('pgTitle').textContent=names[pg]||pg;
-  if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='express')loadExpressPage();else if(pg==='rewards')loadRewardsPage();else if(pg==='routes'){populateRouteSelects();renderRouteTable();}else if(pg==='boatroutes'){populateBoatRouteSelects();renderBoatRouteTable();setTimeout(loadBRBoats,100);}else if(pg==='manualprices')loadManualPricePage();else if(pg==='cargotypes')loadCtList();else if(pg==='pickups'){loadLocList();loadPickupAssignQuick();}else if(pg==='aircargo'){renderAirDestTable();loadPricingGroupList();loadAirPickupLocList();loadAirTypeUI('normal');loadAirTypeUI('express');}else if(pg==='siteconfig')loadSiteConfig();else if(pg==='sms')loadSmsPage();else if(pg==='users')loadUsers();else if(pg==='drivers'){loadDriversList();renderVehicleTypesList();}else if(pg==='driverpayments')loadDriverPayments();
+  if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='express')loadExpressPage();else if(pg==='rewards')loadRewardsPage();else if(pg==='routes'){populateRouteSelects();renderRouteTable();}else if(pg==='boatroutes'){populateBoatRouteSelects();renderBoatRouteTable();setTimeout(loadBRBoats,100);}else if(pg==='manualprices')loadManualPricePage();else if(pg==='cargotypes')loadCtList();else if(pg==='pickups'){loadLocList();loadPickupAssignQuick();}else if(pg==='aircargo'){renderAirDestTable();loadPricingGroupList();loadAirPickupLocList();loadAirTypeUI('normal');loadAirTypeUI('express');}else if(pg==='siteconfig')loadSiteConfig();else if(pg==='sms')loadSmsPage();else if(pg==='users')loadUsers();else if(pg==='drivers'){loadDriversList();renderVehicleTypesList();loadRouteRateDropdowns();}
+    else if(pg==='driverearnings'){loadEarningsPage();}else if(pg==='driverpayments')loadDriverPayments();
   closeSB();
 };
 window.switchBoatTab=function(tab){document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.sub-pane').forEach(p=>p.classList.remove('active'));if(tab==='boats'){$('subBoats').classList.add('active');document.querySelectorAll('.sub-tab')[0].classList.add('active')}else{$('subSpeedboats').classList.add('active');document.querySelectorAll('.sub-tab')[1].classList.add('active')}};
@@ -1546,15 +1646,6 @@ Ref: ${d.referenceNumber}
 Customer: ${d.customerName}`);
   showToast('Delivery approved ✅','ok');
   showNotifyModal(d);
-  db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
-    const cfg2=snap.val()||{};
-    if(!cfg2.sid||!cfg2.token)return;
-    const rn=(d.customerContact||'').replace(/[^0-9]/g,'');
-    if(!rn)return;
-    const mn=rn.startsWith('960')?rn:'960'+rn;
-    try{await callTwilioSMS(mn,buildSmsMessage(d));showToast('SMS sent to '+d.customerName+' ✅','ok');}
-    catch(e){showToast('SMS failed: '+e.message,'err');}
-  });
 };
 
 $('statClose').onclick=$('statCancel').onclick=()=>$('statMod').classList.remove('show');
@@ -1596,22 +1687,6 @@ Customer: ${d.customerName}`);
       $('statMod').classList.remove('show');
       showToast('Delivery approved ✅','ok');
       showNotifyModal(d);
-      // ── Auto-send SMS — fetch fresh config from Firebase ──
-      db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
-        const cfg=snap.val()||{};
-        if(!cfg.sid||!cfg.token){return;}
-        const rawNum=(d.customerContact||'').replace(/[^0-9]/g,'');
-        if(!rawNum)return;
-        const mvNum=rawNum.startsWith('960')?rawNum:'960'+rawNum;
-        const smsMsg=buildSmsMessage(d);
-        try{
-          await callTwilioSMS(mvNum,smsMsg);
-          showToast('SMS sent to '+d.customerName+' ✅','ok');
-        }catch(e){
-          showToast('SMS failed: '+e.message,'err');
-          console.error('SMS error:',e);
-        }
-      });
     } else {
       d.status=ns;d.progress=sm[ns]||1;
       await db.ref('cargoDeliveries').set(allD);
@@ -1948,8 +2023,132 @@ db.ref('driverSettings').on('value',snap=>{
 window.saveDriverSettings=async function(){
   const rate=parseFloat($('drvRateInput')?.value)||50;
   const cycle=$('drvPayCycle')?.value||'daily';
-  await db.ref('driverSettings').set({ratePerDelivery:rate,payCycle:cycle});
+  const current=(await db.ref('driverSettings').once('value')).val()||{};
+  await db.ref('driverSettings').set({...current,ratePerDelivery:rate,payCycle:cycle});
   showToast('Driver settings saved ✅','ok');
+};
+
+/* ─── ROUTE-BASED EARNINGS ─── */
+let allRouteRates=[];
+db.ref('driverSettings/routeRates').on('value',snap=>{
+  allRouteRates=snap.val()?Object.values(snap.val()):[];
+  renderRouteRates();
+  renderRouteRates2();
+  loadRouteRateDropdowns();
+});
+
+function loadRouteRateDropdowns(){
+  const pu=$('drvRoutePickup');const de=$('drvRouteDest');
+  if(!pu||!de)return;
+  const pickups=[...new Set([...allPickups.map(p=>p.name||p),...allRoutePrices.map(r=>r.pickup)].filter(Boolean))];
+  const dests=[...new Set([...allDlocs.map(d=>d.name||d),...allRoutePrices.map(r=>r.delivery)].filter(Boolean))];
+  pu.innerHTML='<option value="">Select pickup</option>'+pickups.map(p=>`<option value="${p}">${p}</option>`).join('');
+  de.innerHTML='<option value="">Select destination</option>'+dests.map(d=>`<option value="${d}">${d}</option>`).join('');
+}
+
+function renderRouteRates(){
+  const el=$('routeRatesList');if(!el)return;
+  if(!allRouteRates.length){el.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);padding:.5rem 0">No route-specific rates set. Using default rate for all routes.</div>';return;}
+  el.innerHTML=allRouteRates.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.06)">
+      <i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.75rem"></i>
+      <span style="font-size:.76rem;color:white;flex:1">${r.pickup}</span>
+      <i class="fas fa-arrow-right" style="color:rgba(255,255,255,.3);font-size:.65rem"></i>
+      <i class="fas fa-flag-checkered" style="color:#3498db;font-size:.75rem"></i>
+      <span style="font-size:.76rem;color:white;flex:1">${r.delivery}</span>
+      <span style="font-family:monospace;font-weight:800;color:#27ae60;font-size:.82rem">MVR ${r.rate}</span>
+      <button onclick="removeRouteRate(${i})" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:3px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>
+    </div>`).join('');
+}
+
+window.saveDriverEarnings=async function(){
+  const rate=parseFloat($('drvRateInput2')?.value||$('drvRateInput')?.value)||50;
+  const cycle=$('drvPayCycle2')?.value||$('drvPayCycle')?.value||'daily';
+  const current=(await db.ref('driverSettings').once('value')).val()||{};
+  await db.ref('driverSettings').set({...current,ratePerDelivery:rate,payCycle:cycle});
+  // Sync both inputs
+  if($('drvRateInput'))$('drvRateInput').value=rate;
+  if($('drvRateInput2'))$('drvRateInput2').value=rate;
+  showToast('Earnings settings saved ✅','ok');
+};
+
+function loadEarningsPage(){
+  db.ref('driverSettings').once('value').then(snap=>{
+    const s=snap.val()||{ratePerDelivery:50,payCycle:'daily'};
+    if($('drvRateInput2'))$('drvRateInput2').value=s.ratePerDelivery||50;
+    if($('drvPayCycle2'))$('drvPayCycle2').value=s.payCycle||'daily';
+  });
+  // Populate dropdowns
+  const pu=$('drvRoutePickup2');const de=$('drvRouteDest2');
+  if(pu){
+    const pickups=[...new Set([...allPickups.map(p=>p.name||p),...allRoutePrices.map(r=>r.pickup)].filter(Boolean))];
+    pu.innerHTML='<option value="">Select pickup</option>'+pickups.map(p=>`<option value="${p}">${p}</option>`).join('');
+  }
+  if(de){
+    const dests=[...new Set([...allDlocs.map(d=>d.name||d),...allRoutePrices.map(r=>r.delivery)].filter(Boolean))];
+    de.innerHTML='<option value="">Select destination</option>'+dests.map(d=>`<option value="${d}">${d}</option>`).join('');
+  }
+  renderRouteRates2();
+}
+
+function renderRouteRates2(){
+  const el=$('routeRatesList2');if(!el)return;
+  if(!allRouteRates.length){
+    el.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);padding:.5rem 0;text-align:center"><i class="fas fa-info-circle" style="margin-right:5px"></i>No route rates set — using default rate for all deliveries.</div>';
+    return;
+  }
+  el.innerHTML=`<div style="background:rgba(0,0,0,.2);border-radius:12px;overflow:hidden">
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px 38px;gap:0;padding:.5rem .75rem;border-bottom:1px solid rgba(255,255,255,.06)">
+      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Pickup</span>
+      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Delivery</span>
+      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Rate</span>
+      <span></span>
+    </div>`+
+  allRouteRates.map((r,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 80px 38px;gap:0;align-items:center;padding:.6rem .75rem;border-bottom:1px solid rgba(255,255,255,.04)">
+      <span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.65rem;margin-right:4px"></i>${r.pickup}</span>
+      <span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-flag-checkered" style="color:#3498db;font-size:.65rem;margin-right:4px"></i>${r.delivery}</span>
+      <span style="font-family:monospace;font-weight:800;color:#27ae60;font-size:.82rem">MVR ${r.rate}</span>
+      <button onclick="removeRouteRate(${i})" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>
+    </div>`).join('')+'</div>';
+}
+
+window.addRouteRate2=async function(){
+  const pickup=$('drvRoutePickup2')?.value;
+  const delivery=$('drvRouteDest2')?.value;
+  const rate=parseFloat($('drvRouteRate2')?.value)||0;
+  if(!pickup||!delivery){showToast('Select pickup and delivery','err');return;}
+  if(!rate){showToast('Enter a pay rate (MVR)','err');return;}
+  if(pickup===delivery){showToast('Pickup and delivery cannot be the same','err');return;}
+  const existing=allRouteRates.find(r=>r.pickup===pickup&&r.delivery===delivery);
+  if(existing){existing.rate=rate;}
+  else{allRouteRates.push({pickup,delivery,rate});}
+  await db.ref('driverSettings/routeRates').set(allRouteRates);
+  if($('drvRouteRate2'))$('drvRouteRate2').value='';
+  renderRouteRates2();
+  renderRouteRates();
+  showToast(`${pickup} → ${delivery}: MVR ${rate} saved ✅`,'ok');
+};
+
+window.addRouteRate=async function(){
+  const pickup=$('drvRoutePickup')?.value;
+  const delivery=$('drvRouteDest')?.value;
+  const rate=parseFloat($('drvRouteRate')?.value)||0;
+  if(!pickup||!delivery){showToast('Select pickup and delivery','err');return;}
+  if(!rate){showToast('Enter a rate (MVR)','err');return;}
+  if(pickup===delivery){showToast('Pickup and delivery cannot be the same','err');return;}
+  const existing=allRouteRates.find(r=>r.pickup===pickup&&r.delivery===delivery);
+  if(existing){existing.rate=rate;}
+  else{allRouteRates.push({pickup,delivery,rate});}
+  await db.ref('driverSettings/routeRates').set(allRouteRates);
+  if($('drvRouteRate'))$('drvRouteRate').value='';
+  showToast('Route rate saved ✅','ok');
+};
+
+window.removeRouteRate=async function(idx){
+  allRouteRates.splice(idx,1);
+  await db.ref('driverSettings/routeRates').set(allRouteRates.length?allRouteRates:null);
+  showToast('Removed','ok');
 };
 
 let allVehicleTypes=[];
@@ -2045,80 +2244,260 @@ function loadDriversList(){
         })()}
       </div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-        <button onclick="viewDriver(${d.id})" style="background:rgba(243,156,18,.12);border:1px solid rgba(243,156,18,.25);color:#f39c12;border-radius:10px;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer"><i class="fas fa-eye"></i> View</button>
-        ${vs!=='verified'?`<button onclick="verifyDriver(${d.id},'verified')" style="background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.25);color:#27ae60;border-radius:10px;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer"><i class="fas fa-check"></i> Verify</button>`:''}
-        ${vs!=='rejected'?`<button onclick="verifyDriver(${d.id},'rejected')" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.25);color:#e74c3c;border-radius:10px;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer"><i class="fas fa-times"></i> Reject</button>`:''}
-        ${d.status!=='suspended'?`<button onclick="suspendDriver(${d.id})" style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:10px;padding:5px 10px;font-size:.68rem;cursor:pointer"><i class="fas fa-ban"></i></button>`:`<button onclick="activateDriver(${d.id})" style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);color:#27ae60;border-radius:10px;padding:5px 10px;font-size:.68rem;cursor:pointer"><i class="fas fa-check-circle"></i> Activate</button>`}
+        <button class="drv-btn" data-action="view" data-did="${d.id}" style="background:rgba(243,156,18,.12);border:1px solid rgba(243,156,18,.25);color:#f39c12;border-radius:10px;padding:5px 10px;font-size:.68rem;font-weight:700;cursor:pointer"><i class="fas fa-eye"></i> View</button>
+        ${vs!=='verified'?
+          '<button class="drv-btn" data-action="approve" data-did="'+d.id+'" style="background:rgba(39,174,96,.15);border:1.5px solid rgba(39,174,96,.4);color:#27ae60;border-radius:10px;padding:5px 12px;font-size:.68rem;font-weight:700;cursor:pointer"><i class=\"fas fa-check\"></i> Approve</button>':
+          '<span style="font-size:.65rem;color:#27ae60;font-weight:700">✓ Approved</span>'}
+        ${vs!=='rejected'?'<button class="drv-btn" data-action="reject" data-did="'+d.id+'" style="background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.25);color:#e74c3c;border-radius:10px;padding:5px 10px;font-size:.68rem;cursor:pointer"><i class=\"fas fa-times\"></i> Reject</button>':''}
+        <button class="drv-btn" data-action="delete" data-did="${d.id}" style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:10px;padding:5px 10px;font-size:.68rem;cursor:pointer"><i class="fas fa-trash"></i></button>
       </div>
     </div>`}).join('');
+
+  // Delegated handler — all driver action buttons
+  var dl=document.getElementById('driversList');
+  if(dl){
+    dl.onclick=function(ev){
+      var btn=ev.target.closest('.drv-btn');
+      if(!btn)return;
+      var action=btn.dataset.action;
+      var did=btn.dataset.did;
+      if(action==='approve')verifyDriver(did,'verified');
+      else if(action==='reject')verifyDriver(did,'rejected');
+      else if(action==='delete')deleteDriver(did);
+      else if(action==='view')viewDriver(did);
+    };
+  }
 }
 
 window.viewDriver=function(id){
-  const d=allDrivers.find(x=>x.id===id);if(!d)return;
+  const d=allDrivers.find(x=>String(x.id)===String(id));if(!d)return;
   const content=$('driverModContent');if(!content)return;
-  const payments=allDriverPayments2.filter(p=>p.driverId===id);
+  const payments=allDriverPayments2.filter(p=>String(p.driverId)===String(id));
   const pending=payments.filter(p=>p.status==='pending').reduce((s,p)=>s+(p.amount||0),0);
+  const total=payments.reduce((s,p)=>s+(p.amount||0),0);
+  const vs=d.verificationStatus||'pending_review';
+  const vsColor=vs==='verified'?'#27ae60':vs==='rejected'?'#e74c3c':vs==='under_review'?'#3498db':'#f39c12';
+  const vsLabel=vs==='verified'?'✓ Verified':vs==='rejected'?'✗ Rejected':vs==='under_review'?'⏳ Under Review':'⏸ Pending';
+
+  function docBox(label,src,key){
+    if(src){
+      return `<div style="margin-bottom:.65rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+          <span style="font-size:.65rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">${label}</span>
+          <span style="font-size:.6rem;color:#27ae60;font-weight:700">✓ Uploaded</span>
+        </div>
+        <div style="position:relative;cursor:pointer" onclick="viewFullImg('${src}','${label}')">
+          <img src="${src}" style="width:100%;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(39,174,96,.3)">
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);border-radius:10px;opacity:0;transition:.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+            <i class="fas fa-eye" style="color:white;font-size:1.4rem"></i>
+          </div>
+          <div style="position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:.6rem;color:white"><i class="fas fa-eye" style="margin-right:3px"></i>Tap to view</div>
+        </div>
+      </div>`;
+    }
+    return `<div style="margin-bottom:.65rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+        <span style="font-size:.65rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">${label}</span>
+        <span style="font-size:.6rem;color:#e74c3c;font-weight:700">✗ Not uploaded</span>
+      </div>
+      <div style="background:rgba(231,76,60,.07);border:1.5px dashed rgba(231,76,60,.3);border-radius:10px;padding:.65rem;text-align:center;font-size:.7rem;color:rgba(231,76,60,.7)"><i class="fas fa-exclamation-triangle" style="margin-right:5px"></i>Missing</div>
+    </div>`;
+  }
+
   content.innerHTML=`
-    <div style="text-align:center;margin-bottom:1rem">
-      <div style="width:60px;height:60px;background:rgba(243,156,18,.15);border:2px solid rgba(243,156,18,.35);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;font-size:1.4rem;color:#f39c12"><i class="fas fa-user"></i></div>
-      <div style="font-weight:800;color:white;font-size:.95rem">${d.name}</div>
-      <div style="font-size:.74rem;color:rgba(255,255,255,.4);font-family:monospace">+960${d.contact}</div>
+    <!-- Profile header -->
+    <div style="text-align:center;margin-bottom:.9rem;padding-bottom:.9rem;border-bottom:1px solid rgba(255,255,255,.06)">
+      <div style="width:64px;height:64px;background:rgba(243,156,18,.12);border:2px solid rgba(243,156,18,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .55rem;overflow:hidden">
+        ${d.profilePhoto?`<img src="${d.profilePhoto}" style="width:100%;height:100%;object-fit:cover">`:`<i class="fas fa-user" style="font-size:1.5rem;color:#f39c12"></i>`}
+      </div>
+      <div style="font-weight:800;color:white;font-size:1rem">${d.name}</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.4);font-family:monospace;margin-top:2px">+960${d.contact}</div>
+      ${d.email?`<div style="font-size:.68rem;color:rgba(255,255,255,.3);margin-top:1px">${d.email}</div>`:''}
+      <span style="display:inline-block;margin-top:.4rem;background:${vsColor}22;border:1px solid ${vsColor}55;color:${vsColor};font-size:.65rem;font-weight:700;padding:3px 12px;border-radius:12px">${vsLabel}</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.85rem">
-      <div style="background:#1a2535;border-radius:10px;padding:.7rem;text-align:center"><div style="font-size:.55rem;color:rgba(255,255,255,.3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.8px">Deliveries</div><div style="font-weight:800;color:#f39c12;font-size:1.1rem;font-family:monospace">${d.completedDeliveries||0}</div></div>
-      <div style="background:#1a2535;border-radius:10px;padding:.7rem;text-align:center"><div style="font-size:.55rem;color:rgba(255,255,255,.3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.8px">Pending Pay</div><div style="font-weight:800;color:#27ae60;font-size:1.1rem;font-family:monospace">MVR ${pending}</div></div>
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:.85rem">
+      <div style="background:#1a2535;border-radius:10px;padding:.6rem;text-align:center"><div style="font-size:.5rem;color:rgba(255,255,255,.3);margin-bottom:2px;text-transform:uppercase">Deliveries</div><div style="font-weight:800;color:#f39c12;font-size:1rem;font-family:monospace">${d.completedDeliveries||0}</div></div>
+      <div style="background:#1a2535;border-radius:10px;padding:.6rem;text-align:center"><div style="font-size:.5rem;color:rgba(255,255,255,.3);margin-bottom:2px;text-transform:uppercase">Total Earn</div><div style="font-weight:800;color:#27ae60;font-size:1rem;font-family:monospace">MVR ${total}</div></div>
+      <div style="background:#1a2535;border-radius:10px;padding:.6rem;text-align:center"><div style="font-size:.5rem;color:rgba(255,255,255,.3);margin-bottom:2px;text-transform:uppercase">Pending</div><div style="font-weight:800;color:#e74c3c;font-size:1rem;font-family:monospace">MVR ${pending}</div></div>
     </div>
-    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.75rem">
-      <div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.8px">Documents</div>
-      ${d.idDoc?`<div style="margin-bottom:.4rem"><div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">National ID / Passport:</div><img src="${d.idDoc}" style="width:100%;border-radius:8px;border:1px solid #2e3f55"></div>`:'<div style="font-size:.72rem;color:#e74c3c">❌ No ID uploaded</div>'}
-      ${d.licenceDoc?`<div style="margin-top:.5rem"><div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Driver\'s Licence:</div><img src="${d.licenceDoc}" style="width:100%;border-radius:8px;border:1px solid #2e3f55"></div>`:'<div style="font-size:.72rem;color:#e74c3c;margin-top:.3rem">❌ No licence uploaded</div>'}
-      ${d.vehicleRegDoc?`<div style="margin-top:.5rem"><div style="font-size:.68rem;color:rgba(255,255,255,.45);margin-bottom:.3rem">Vehicle Registry:</div><img src="${d.vehicleRegDoc}" style="width:100%;border-radius:8px;border:1px solid #2e3f55"></div>`:'<div style="font-size:.72rem;color:#e74c3c;margin-top:.3rem;padding:6px;background:rgba(231,76,60,.07);border-radius:7px"><i class="fas fa-exclamation-triangle" style="margin-right:4px"></i>Vehicle Registry not uploaded — required for verification</div>'}
+    <!-- Documents -->
+    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.65rem">
+      <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700">📄 Documents — Tap to view full size</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${docBox('ID Front',d.idDoc,'idDoc')}
+        ${docBox('ID Back',d.idDocBack,'idDocBack')}
+      </div>
+      ${docBox('Driver\'s Licence',d.licenceDoc,'licenceDoc')}
+      ${docBox('Vehicle Registry',d.vehicleRegDoc,'vehicleRegDoc')}
     </div>
-    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.75rem">
-      <div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.8px">Vehicle</div>
+    <!-- Vehicle -->
+    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.65rem">
+      <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-bottom:.55rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700">🚗 Vehicle</div>
       <div style="display:flex;align-items:center;gap:10px">
-        <div><div style="font-size:.78rem;color:white;font-weight:600">${d.vehicle||'—'} ${d.vehicleNumber?`<span style="color:#f39c12;font-family:monospace"> · ${d.vehicleNumber}</span>`:''}</div></div>
-        ${d.vehiclePhoto?`<img src="${d.vehiclePhoto}" style="width:70px;height:50px;object-fit:cover;border-radius:8px;border:1px solid #2e3f55;margin-left:auto">`:``}
+        <div style="flex:1">
+          <div style="font-size:.82rem;color:white;font-weight:700">${d.vehicle||'—'}</div>
+          <div style="font-size:.75rem;color:#f39c12;font-family:monospace;margin-top:2px">${d.vehicleNumber||'—'}</div>
+        </div>
+        ${d.vehiclePhoto?`<img src="${d.vehiclePhoto}" onclick="viewFullImg('${d.vehiclePhoto}','Vehicle')" style="width:70px;height:52px;object-fit:cover;border-radius:8px;border:1px solid #2e3f55;cursor:pointer">`:``}
       </div>
     </div>
-    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.75rem">
-      <div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.8px">Bank Details</div>
-      <div style="font-size:.78rem;color:white;font-weight:600">${d.bankName||'—'}</div>
-      <div style="font-size:.76rem;color:#27ae60;font-family:monospace;margin-top:2px">${d.bankAccount||'—'}</div>
+    <!-- Bank -->
+    <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.65rem">
+      <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-bottom:.55rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700">🏦 Bank Details</div>
+      <div style="font-size:.82rem;color:white;font-weight:700">${d.bankName||'—'}</div>
+      <div style="font-size:.75rem;color:rgba(255,255,255,.5);margin-top:2px">${d.bankAccountName||'—'}</div>
+      <div style="font-size:.75rem;color:#27ae60;font-family:monospace;margin-top:2px;cursor:pointer" onclick="navigator.clipboard.writeText('${d.bankAccount||''}').then(()=>showToast('Copied ✅','ok'))">${d.bankAccount||'—'} 📋</div>
     </div>
+    <!-- Resubmission Request -->
+    <div style="background:rgba(231,76,60,.07);border:1.5px solid rgba(231,76,60,.2);border-radius:12px;padding:.8rem;margin-bottom:.75rem">
+      <div style="font-size:.7rem;font-weight:700;color:#e74c3c;margin-bottom:.55rem"><i class="fas fa-rotate-left" style="margin-right:5px"></i>Request Document Resubmission</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.55rem">Select which documents need to be resubmitted, then send SMS to driver.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.6rem">
+        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubID" value="ID / Passport"> ID / Passport</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubLic" value="Driver's Licence"> Licence</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubReg" value="Vehicle Registry"> Registry</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubVeh" value="Vehicle Photo"> Vehicle Photo</label>
+      </div>
+      <textarea id="resubNote" placeholder="Additional note (optional)..." style="width:100%;min-height:60px;padding:8px 12px;background:#1a2535;border:1px solid rgba(231,76,60,.25);border-radius:10px;color:white;font-size:.75rem;outline:none;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:.5rem"></textarea>
+      <button onclick="sendResubmitRequest('${d.id}')" style="width:100%;background:rgba(231,76,60,.15);border:1.5px solid rgba(231,76,60,.35);color:#e74c3c;border-radius:12px;padding:9px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.78rem"><i class="fas fa-sms" style="margin-right:6px"></i>Send Resubmission Request + SMS</button>
+    </div>
+    <!-- Action buttons -->
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      ${d.verificationStatus!=='verified'?`<button onclick="verifyDriver(${d.id},'verified');$('driverMod').classList.remove('show')" style="flex:1;background:rgba(39,174,96,.15);border:1.5px solid rgba(39,174,96,.35);color:#27ae60;border-radius:14px;padding:10px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-check-circle"></i> Approve Driver</button>`:'<div style="flex:1;text-align:center;color:#27ae60;font-weight:700;font-size:.8rem"><i class="fas fa-check-circle"></i> Driver Verified</div>'}
-      ${d.verificationStatus!=='rejected'?`<button onclick="verifyDriver(${d.id},'rejected');$('driverMod').classList.remove('show')" style="background:rgba(231,76,60,.12);border:1.5px solid rgba(231,76,60,.3);color:#e74c3c;border-radius:14px;padding:10px 14px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-times"></i> Reject</button>`:''}
+      ${vs!=='verified'?`<button onclick="verifyDriver('${d.id}','verified');$('driverMod').classList.remove('show')" style="flex:2;background:rgba(39,174,96,.15);border:1.5px solid rgba(39,174,96,.35);color:#27ae60;border-radius:14px;padding:10px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-check-circle"></i> Approve</button>`:'<span style="flex:2;text-align:center;background:rgba(39,174,96,.1);border-radius:14px;padding:10px;color:#27ae60;font-weight:700;font-size:.8rem"><i class="fas fa-check-circle"></i> Approved</span>'}
+      <button onclick="verifyDriver('${d.id}','rejected');$('driverMod').classList.remove('show')" style="flex:1;background:rgba(231,76,60,.12);border:1.5px solid rgba(231,76,60,.3);color:#e74c3c;border-radius:14px;padding:10px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-times"></i> Reject</button>
+      <button onclick="deleteDriver('${d.id}');$('driverMod').classList.remove('show')" style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:14px;padding:10px 12px;cursor:pointer"><i class="fas fa-trash"></i></button>
     </div>`;
   $('driverMod').classList.add('show');
 };
 
+/* ─── View full image overlay ─── */
+window.viewFullImg=function(src,label){
+  if(!src)return;
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem';
+  ov.innerHTML=`<div style="max-width:500px;width:100%;text-align:center">
+    <div style="font-weight:700;color:white;font-size:.9rem;margin-bottom:.65rem">${label}</div>
+    <img src="${src}" style="max-width:100%;max-height:75vh;border-radius:12px;border:2px solid rgba(255,255,255,.15)">
+    <button onclick="this.closest('div').parentElement.remove()" style="margin-top:.75rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;border-radius:22px;padding:8px 28px;cursor:pointer;font-family:inherit;font-size:.82rem;display:block;width:100%"><i class="fas fa-times" style="margin-right:6px"></i>Close</button>
+  </div>`;
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+};
+
+/* ─── Send resubmission request ─── */
+window.sendResubmitRequest=async function(id){
+  const d=allDrivers.find(x=>String(x.id)===String(id));if(!d)return;
+  const docs=[];
+  if($('resubID')?.checked)docs.push('ID / Passport');
+  if($('resubLic')?.checked)docs.push("Driver's Licence");
+  if($('resubReg')?.checked)docs.push('Vehicle Registry');
+  if($('resubVeh')?.checked)docs.push('Vehicle Photo');
+  const note=($('resubNote')?.value||'').trim();
+  if(!docs.length&&!note){showToast('Select documents or add a note','err');return;}
+  const reason=(docs.length?'Please resubmit: '+docs.join(', ')+'. ':'')+(note||'');
+  // Save rejection reason so driver sees it in red
+  d.rejectionReason=reason;
+  d.verificationStatus='pending_review';
+  d.status='pending';
+  d.rejectionAt=new Date().toISOString();
+  await db.ref('drivers').set(allDrivers);
+  // In-app notification
+  const notif={id:Date.now(),title:'⚠️ Document Resubmission Required',message:reason,timestamp:new Date().toISOString(),read:false};
+  const dn=toArr((await db.ref('driverNotifications/'+id).once('value')).val());
+  dn.push(notif);await db.ref('driverNotifications/'+id).set(dn);
+  // SMS
+  db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.sid&&cfg.token&&d.contact){
+      const mvNum=d.contact.replace(/[^0-9]/g,'').startsWith('960')?d.contact.replace(/[^0-9]/g,''):'960'+d.contact.replace(/[^0-9]/g,'');
+      const sms='EasyCargoMV: Hi '+d.name+', please resubmit your documents: '+reason+' Open the driver app to upload. Thank you.';
+      try{await callTwilioSMS(mvNum,sms);showToast('Resubmission request sent + SMS ✅','ok');}
+      catch(e){showToast('Request sent (SMS failed)','ok');}
+    } else {showToast('Request sent to driver app ✅','ok');}
+  });
+  $('driverMod').classList.remove('show');
+};
+
+
 window.verifyDriver=async function(id,status){
-  const d=allDrivers.find(x=>x.id===id);if(!d)return;
-  const label=status==='verified'?'Approve':'Reject';
-  if(!confirm(label+' driver '+d.name+'?'))return;
-  // Require vehicle registry doc for verification
-  if(status==='verified'&&(!d.vehicleRegDoc||!d.idDoc||!d.licenceDoc)){
-    const missing=[];
-    if(!d.idDoc)missing.push('ID / Passport');
-    if(!d.licenceDoc)missing.push('Driver Licence');
-    if(!d.vehicleRegDoc)missing.push('Vehicle Registry');
-    showToast('Cannot verify — missing: '+missing.join(', '),'err');
+  const d=allDrivers.find(x=>String(x.id)===String(id));
+  if(!d){showToast('Driver not found','err');return;}
+
+  if(status==='rejected'){
+    openRejectDriverModal(id);
     return;
   }
-  d.verificationStatus=status;
-  if(status==='verified')d.status='active';
+
+  if(!confirm('Approve driver '+d.name+'?'))return;
+  d.verificationStatus='verified';
+  d.status='active';
+  delete d.rejectionReason;
+  delete d.rejectionAt;
   await db.ref('drivers').set(allDrivers);
-  // Notify driver
-  const notif={id:Date.now(),title:status==='verified'?'✅ Account Verified!':'❌ Verification Rejected',message:status==='verified'?'Your EasyCargo driver account has been verified! You can now take delivery orders.':'Your documents were not approved. Please contact EasyCargo support.',timestamp:new Date().toISOString(),read:false};
-  const driverNotifs=toArr((await db.ref('driverNotifications/'+id).once('value')).val());
-  driverNotifs.push(notif);
-  await db.ref('driverNotifications/'+id).set(driverNotifs);
-  showToast(status==='verified'?'Driver verified ✅':'Driver rejected','ok');
+  const notif={id:Date.now(),title:'✅ Account Verified!',message:'Your EasyCargo driver account has been verified! You can now take delivery orders.',timestamp:new Date().toISOString(),read:false};
+  const dn=toArr((await db.ref('driverNotifications/'+id).once('value')).val());
+  dn.push(notif);await db.ref('driverNotifications/'+id).set(dn);
+  showToast(d.name+' approved ✅','ok');
+};
+
+/* ─── REJECT DRIVER MODAL ─── */
+window.openRejectDriverModal=function(id){
+  const mod=$('rejectDriverMod');
+  if(mod){
+    $('rejectDriverId').value=id;
+    $('rejectReasonInput').value='';
+    mod.classList.add('show');
+  } else {
+    // Fallback if modal doesn't exist
+    const reason=window.prompt('Enter rejection reason:','');
+    if(reason===null)return;
+    confirmRejectDriverDirect(id, reason||'Documents need correction. Please re-upload.');
+  }
+};
+
+async function confirmRejectDriverDirect(id, reason){
+  const d=allDrivers.find(x=>String(x.id)===String(id));
+  if(!d)return;
+  d.verificationStatus='rejected';
+  d.status='pending';
+  d.rejectionReason=reason;
+  d.rejectionAt=new Date().toISOString();
+  await db.ref('drivers').set(allDrivers);
+  const notif={id:Date.now(),title:'⚠️ Action Required',message:reason,timestamp:new Date().toISOString(),read:false};
+  const dn=toArr((await db.ref('driverNotifications/'+id).once('value')).val());
+  dn.push(notif);await db.ref('driverNotifications/'+id).set(dn);
+  db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
+    const cfg=snap.val()||{};
+    if(cfg.sid&&cfg.token&&d.contact){
+      const mvNum=d.contact.replace(/[^0-9]/g,'').startsWith('960')?d.contact.replace(/[^0-9]/g,''):'960'+d.contact.replace(/[^0-9]/g,'');
+      const sms='EasyCargoMV: Hi '+d.name+', there is an issue with your driver account: '+reason+' Please fix and resubmit.';
+      try{await callTwilioSMS(mvNum,sms);}catch(e){}
+    }
+  });
+  showToast(d.name+' rejected','ok');
+}
+
+window.confirmRejectDriver=async function(){
+  const id=$('rejectDriverId')?.value;
+  const reason=($('rejectReasonInput')?.value||'').trim();
+  if(!reason){showToast('Please enter a rejection reason','err');return;}
+  await confirmRejectDriverDirect(id, reason);
+  $('rejectDriverMod')?.classList.remove('show');
+  $('driverMod')?.classList.remove('show');
+};
+
+/* ─── DELETE DRIVER ─── */
+window.deleteDriver=async function(id){
+  const d=allDrivers.find(x=>String(x.id)===String(id));
+  if(!d){showToast('Driver not found','err');return;}
+  if(!confirm('DELETE driver '+d.name+'? This cannot be undone.'))return;
+  await db.ref('drivers').set(allDrivers.filter(x=>String(x.id)!==String(id)));
+  showToast(d.name+' deleted','ok');
 };
 
 window.suspendDriver=async function(id){
-  const d=allDrivers.find(x=>x.id===id);if(!d)return;
+  const d=allDrivers.find(x=>String(x.id)===String(id));if(!d)return;
   if(!confirm('Suspend '+d.name+'? They will not be able to take orders.'))return;
   d.status='suspended';
   await db.ref('drivers').set(allDrivers);
@@ -2126,7 +2505,7 @@ window.suspendDriver=async function(id){
 };
 
 window.activateDriver=async function(id){
-  const d=allDrivers.find(x=>x.id===id);if(!d)return;
+  const d=allDrivers.find(x=>String(x.id)===String(id));if(!d)return;
   d.status='active';
   await db.ref('drivers').set(allDrivers);
   showToast('Driver activated ✅','ok');
