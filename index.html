@@ -1669,6 +1669,41 @@ async function autoSendDeliverySms(d){
 /* ═══ NOTIFY CUSTOMER MODAL ═══ */
 let _notifyD=null; // current delivery data for notification
 
+async function doNotifySms(){
+  const d=_notifyD;
+  if(!d){showToast('No order selected','err');return;}
+  const cfg=siteSettings.twilioConfig||{};
+  if(!cfg.sid||!cfg.token){
+    showToast('Twilio not configured. Go to SMS Settings first.','err');
+    return;
+  }
+  const rawNum=(d.customerContact||'').replace(/[^0-9]/g,'');
+  if(!rawNum){showToast('No customer contact number','err');return;}
+  const mvNum=rawNum.startsWith('960')?rawNum:'960'+rawNum;
+  const msg=buildSmsMessage(d);
+  const btn=$('notifySmsBtn');
+  if(btn){btn.disabled=true;btn.textContent='Sending…';}
+  try{
+    await callTwilioSMS(mvNum,msg);
+    showToast('SMS sent to customer ✅','ok');
+    $('notifyMod').classList.remove('show');
+  }catch(e){
+    showToast('SMS failed: '+e.message,'err');
+    console.error('SMS error:',e);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sms"></i> Send SMS to Customer';}
+  }
+}
+
+async function doNotifyWhatsapp(){
+  const d=_notifyD;
+  if(!d){return;}
+  const rawNum=(d.customerContact||'').replace(/[^0-9]/g,'');
+  const mvNum=rawNum.startsWith('960')?rawNum:'960'+rawNum;
+  const msg=encodeURIComponent(buildSmsMessage(d));
+  window.open('https://wa.me/'+mvNum+'?text='+msg,'_blank');
+}
+
 function showNotifyModal(d){
   _notifyD=d;
   const rawNum=(d.customerContact||'').replace(/[^0-9]/g,'');
@@ -3220,6 +3255,59 @@ window.resetUserPts=async function(email){
   if(slipC2) slipC2.onclick=function(){$('slipMod').classList.remove('show');};
   window.viewSlip=function(url){if(!url)return;$('slipImg').src=url;$('slipMod').classList.add('show');};
 })();
+
+
+/* ─── TWILIO CREDENTIALS SAVE ─── */
+async function saveTwilioSettings(){
+  const sid=($('twilioSID')?.value||'').trim();
+  const token=($('twilioToken')?.value||'').trim();
+  const from=($('twilioFrom')?.value||'').trim();
+  const msgSid=($('twilioMsgSid')?.value||'').trim();
+
+  if(!sid||!token){showToast('Account SID and Auth Token are required','err');return;}
+
+  const btn=document.querySelector('[onclick="saveTwilioSettings()"]');
+  if(btn){btn.disabled=true;btn.textContent='Saving…';}
+
+  try{
+    const cfg={sid,token,from,msgSid};
+    await db.ref('siteSettings/twilioConfig').set(cfg);
+    // Update local siteSettings
+    if(!siteSettings)siteSettings={};
+    siteSettings.twilioConfig=cfg;
+    showToast('Twilio credentials saved ✅','ok');
+    // Update status banner
+    const banner=$('smsBanner');
+    const dot=$('smsStatusDot');
+    const txt=$('smsStatusTxt');
+    if(banner){banner.style.borderColor='rgba(39,174,96,.3)';banner.style.background='rgba(39,174,96,.07)';}
+    if(dot)dot.style.background='#27ae60';
+    if(txt)txt.textContent='Twilio configured — SMS sending enabled.';
+  }catch(e){
+    showToast('Save failed: '+e.message,'err');
+    console.error(e);
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save Credentials';}
+  }
+}
+
+/* ─── LOAD TWILIO SETTINGS INTO FORM ─── */
+function loadSmsPage(){
+  const cfg=siteSettings.twilioConfig||{};
+  if($('twilioSID'))$('twilioSID').value=cfg.sid||'';
+  if($('twilioToken'))$('twilioToken').value=cfg.token||'';
+  if($('twilioFrom'))$('twilioFrom').value=cfg.from||'';
+  if($('twilioMsgSid'))$('twilioMsgSid').value=cfg.msgSid||'';
+  // Update status
+  const dot=$('smsStatusDot');
+  const txt=$('smsStatusTxt');
+  const banner=$('smsBanner');
+  if(cfg.sid&&cfg.token){
+    if(dot)dot.style.background='#27ae60';
+    if(txt)txt.textContent='Twilio configured — SMS sending enabled.';
+    if(banner){banner.style.borderColor='rgba(39,174,96,.3)';banner.style.background='rgba(39,174,96,.07)';}
+  }
+}
 
 </script>
 </body>
