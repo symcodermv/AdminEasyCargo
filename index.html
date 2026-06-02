@@ -1517,6 +1517,46 @@ window.openStat=function(id){
   if($('statDelivTime'))$('statDelivTime').value=d.deliveryTime||'';
   $('statMod').classList.add('show');
 };
+/* ─── APPROVE DELIVERY BUTTON (Records page) ─── */
+window.approveDelivery=async function(orderId){
+  const d=allD.find(o=>String(o.id)===String(orderId));
+  if(!d){showToast('Order not found','err');return;}
+  if(!confirm('Approve delivery for '+d.referenceNumber+'?'))return;
+  d.status='Delivered';d.progress=5;
+  d.completedAt=d.completedAt||new Date().toISOString();
+  d.approvedByAdmin=me?.username||'Admin';
+  d.approvedAt=new Date().toISOString();
+  await db.ref('cargoDeliveries').set(allD);
+  if(d.assignedDriverId){
+    const dsSnap=await db.ref('driverSettings').once('value');
+    const rate=parseInt(dsSnap.val()?.ratePerDelivery)||50;
+    const payments=toArr((await db.ref('driverPayments').once('value')).val());
+    payments.push({id:Date.now(),driverId:d.assignedDriverId,driverName:d.assignedDriverName||'—',driverContact:d.assignedDriverContact||'',orderId:d.id,orderRef:d.referenceNumber,amount:rate,status:'pending',completedAt:new Date().toISOString(),route:`${d.pickupLocation||'Air'} → ${d.deliveryLocation||d.airDestination||'—'}`});
+    await db.ref('driverPayments').set(payments);
+    const drivers=toArr((await db.ref('drivers').once('value')).val());
+    const drv=drivers.find(x=>String(x.id)===String(d.assignedDriverId));
+    if(drv){drv.completedDeliveries=(drv.completedDeliveries||0)+1;await db.ref('drivers').set(drivers);}
+    const dn=toArr((await db.ref('driverNotifications/'+d.assignedDriverId).once('value')).val());
+    dn.push({id:Date.now(),title:'✅ Delivery Approved!',message:`Delivery ${d.referenceNumber} approved. Payment pending.`,timestamp:new Date().toISOString(),read:false});
+    await db.ref('driverNotifications/'+d.assignedDriverId).set(dn);
+  }
+  pushN('📦 Delivered!',`Your delivery ${d.referenceNumber} is confirmed. Thank you!`,d.createdBy);
+  sendTelegram(`✅ APPROVED
+Ref: ${d.referenceNumber}
+Customer: ${d.customerName}`);
+  showToast('Delivery approved ✅','ok');
+  showNotifyModal(d);
+  db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
+    const cfg2=snap.val()||{};
+    if(!cfg2.sid||!cfg2.token)return;
+    const rn=(d.customerContact||'').replace(/[^0-9]/g,'');
+    if(!rn)return;
+    const mn=rn.startsWith('960')?rn:'960'+rn;
+    try{await callTwilioSMS(mn,buildSmsMessage(d));showToast('SMS sent to '+d.customerName+' ✅','ok');}
+    catch(e){showToast('SMS failed: '+e.message,'err');}
+  });
+};
+
 $('statClose').onclick=$('statCancel').onclick=()=>$('statMod').classList.remove('show');
 // Wire statConfirm to the handler
 $('statConfirm').addEventListener('click', async function(){
@@ -1556,6 +1596,22 @@ Customer: ${d.customerName}`);
       $('statMod').classList.remove('show');
       showToast('Delivery approved ✅','ok');
       showNotifyModal(d);
+      // ── Auto-send SMS — fetch fresh config from Firebase ──
+      db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
+        const cfg=snap.val()||{};
+        if(!cfg.sid||!cfg.token){return;}
+        const rawNum=(d.customerContact||'').replace(/[^0-9]/g,'');
+        if(!rawNum)return;
+        const mvNum=rawNum.startsWith('960')?rawNum:'960'+rawNum;
+        const smsMsg=buildSmsMessage(d);
+        try{
+          await callTwilioSMS(mvNum,smsMsg);
+          showToast('SMS sent to '+d.customerName+' ✅','ok');
+        }catch(e){
+          showToast('SMS failed: '+e.message,'err');
+          console.error('SMS error:',e);
+        }
+      });
     } else {
       d.status=ns;d.progress=sm[ns]||1;
       await db.ref('cargoDeliveries').set(allD);
@@ -1638,7 +1694,8 @@ async function callTwilioSMS(toNumber,message){
 
 /* Build SMS message from template */
 function buildSmsMessage(d){
-  const tmpl=siteSettings.smsTemplate||smsTemplateVal;
+  const defaultTmpl='EasyCargoMV: Hi {name}, your delivery {ref} to {destination} has been delivered. Total: MVR {price}. Thank you for choosing EasyCargo! 🛵';
+  const tmpl=siteSettings.smsTemplate||defaultTmpl;
   return tmpl
     .replace(/{name}/g,d.customerName||'Customer')
     .replace(/{ref}/g,d.referenceNumber||'—')
