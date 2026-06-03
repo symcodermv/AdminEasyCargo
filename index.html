@@ -1108,24 +1108,6 @@ firebase deploy --only functions</pre>
 
 <!-- ═══ DRIVERS PAGE ═══ -->
 <div id="page-drivers" class="page" style="padding:.9rem;padding-bottom:5.5rem">
-  <!-- Settings card -->
-  <div class="card">
-    <div class="c-hd"><div class="c-ico" style="background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.2)"><i class="fas fa-sliders" style="color:#f39c12"></i></div><h3>Driver Settings</h3></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
-      <div class="fgsm"><label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Default Pay Per Delivery (MVR)</label>
-        <input type="number" id="drvRateInput" placeholder="50" min="0" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.84rem;outline:none;font-family:monospace">
-      </div>
-      <div class="fgsm"><label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Payment Cycle</label>
-        <select id="drvPayCycle" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.8rem;outline:none;font-family:inherit">
-          <option value="daily">Daily (24hrs)</option>
-          <option value="weekly">Weekly</option>
-          <option value="manual">Manual</option>
-        </select>
-      </div>
-    </div>
-    <button onclick="saveDriverSettings()" style="background:#f39c12;color:#1e2a3a;border:none;border-radius:22px;padding:10px 22px;font-weight:700;font-size:.82rem;cursor:pointer"><i class="fas fa-save"></i> Save Settings</button>
-  </div>
-
   <!-- Route-Based Earnings card -->
   <div class="card">
     <div class="c-hd"><div class="c-ico" style="background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2)"><i class="fas fa-route" style="color:#27ae60"></i></div><h3>Route-Based Driver Earnings</h3><span style="font-size:.65rem;color:rgba(255,255,255,.3);margin-left:auto">Set different pay per route</span></div>
@@ -1199,27 +1181,7 @@ firebase deploy --only functions</pre>
 
 <!-- ═══ DRIVER EARNINGS ROUTES PAGE ═══ -->
 <div id="page-driverearnings" class="page" style="padding:.9rem;padding-bottom:5.5rem">
-  <div class="card">
-    <div class="c-hd">
-      <div class="c-ico" style="background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.2)"><i class="fas fa-coins" style="color:#27ae60"></i></div>
-      <h3>Default Pay Rate</h3>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem">
-      <div class="fgsm">
-        <label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Default Pay Per Delivery (MVR)</label>
-        <input type="number" id="drvRateInput2" placeholder="50" min="0" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.84rem;outline:none;font-family:monospace">
-      </div>
-      <div class="fgsm">
-        <label style="font-size:.72rem;color:rgba(255,255,255,.5);margin-bottom:.3rem;display:block">Payment Cycle</label>
-        <select id="drvPayCycle2" style="width:100%;padding:10px 14px;background:#1e2a3a;border:1px solid #2e3f55;border-radius:22px;color:white;font-size:.8rem;outline:none;font-family:inherit">
-          <option value="daily">Daily (24hrs)</option>
-          <option value="weekly">Weekly</option>
-          <option value="manual">Manual</option>
-        </select>
-      </div>
-    </div>
-    <button onclick="saveDriverEarnings()" style="background:#27ae60;color:white;border:none;border-radius:22px;padding:10px 22px;font-weight:700;font-size:.82rem;cursor:pointer"><i class="fas fa-save"></i> Save</button>
-  </div>
+
   <div class="card">
     <div class="c-hd">
       <div class="c-ico" style="background:rgba(243,156,18,.1);border-color:rgba(243,156,18,.2)"><i class="fas fa-route" style="color:#f39c12"></i></div>
@@ -1462,11 +1424,14 @@ window.goPage=function(pg){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.s-item').forEach(i=>i.classList.remove('active'));
   $('page-'+pg)?.classList.add('active');
-  const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',siteconfig:'Site Settings',pickups:'Pickup Locations',routes:'Route Pricing',boatroutes:'Boat Route Pricing',manualprices:'Manual Boat Prices',boats:'Boats & Speed Boats',cargotypes:'Cargo Types',express:'Express Sizes & Pricing',prices:'Weight Ranges',aircargo:'Air Cargo',capacity:'Daily Capacity',rewards:'Rewards & Points',users:'Staff Access',drivers:'Driver Accounts',driverpayments:'Driver Payments',sms:'SMS Notifications'};
+  const names={dashboard:'Dashboard',revenue:'Revenue',records:'All Records',track:'Track Delivery',homepage:'Home Page',siteconfig:'Site Settings',pickups:'Pickup Locations',routes:'Route Pricing',boatroutes:'Boat Route Pricing',manualprices:'Manual Boat Prices',boats:'Boats & Speed Boats',cargotypes:'Cargo Types',express:'Express Sizes & Pricing',prices:'Weight Ranges',aircargo:'Air Cargo',capacity:'Daily Capacity',rewards:'Rewards & Points',users:'Staff Access',drivers:'Driver Accounts',driverearnings:'Driver Earnings',driverpayments:'Driver Payments',sms:'SMS Notifications'};
   $('pgTitle').textContent=names[pg]||pg;
   if(pg==='dashboard')loadDash();else if(pg==='revenue')loadRevenue();else if(pg==='records')loadRecords();else if(pg==='capacity')loadCapPage();else if(pg==='express')loadExpressPage();else if(pg==='rewards')loadRewardsPage();else if(pg==='routes'){populateRouteSelects();renderRouteTable();}else if(pg==='boatroutes'){populateBoatRouteSelects();renderBoatRouteTable();setTimeout(loadBRBoats,100);}else if(pg==='manualprices')loadManualPricePage();else if(pg==='cargotypes')loadCtList();else if(pg==='pickups'){loadLocList();loadPickupAssignQuick();}else if(pg==='aircargo'){renderAirDestTable();loadPricingGroupList();loadAirPickupLocList();loadAirTypeUI('normal');loadAirTypeUI('express');}else if(pg==='siteconfig')loadSiteConfig();else if(pg==='sms')loadSmsPage();else if(pg==='users')loadUsers();else if(pg==='drivers'){loadDriversList();renderVehicleTypesList();loadRouteRateDropdowns();}
     else if(pg==='driverearnings'){loadEarningsPage();}else if(pg==='driverpayments')loadDriverPayments();
   closeSB();
+  // Scroll page content to top
+  const activePg=$('page-'+pg);if(activePg)activePg.scrollTop=0;
+  window.scrollTo(0,0);
 };
 window.switchBoatTab=function(tab){document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.sub-pane').forEach(p=>p.classList.remove('active'));if(tab==='boats'){$('subBoats').classList.add('active');document.querySelectorAll('.sub-tab')[0].classList.add('active')}else{$('subSpeedboats').classList.add('active');document.querySelectorAll('.sub-tab')[1].classList.add('active')}};
 window.switchAirTab=function(tab){document.querySelectorAll('#page-aircargo .sub-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('#page-aircargo .sub-pane').forEach(p=>p.classList.remove('active'));$('airTab-'+tab).classList.add('active');event.target.classList.add('active');if(tab==='weights'){loadAirTypeUI('normal');loadAirTypeUI('express');}if(tab==='pickups')loadAirPickupLocList();if(tab==='pricing')loadPricingGroupList();};
@@ -1492,12 +1457,23 @@ function loadDash(){
   renderTbl('recTB',[...allD].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,20),true);
 }
 
+function getDriverCellHtml(d){
+  if(!d.assignedDriverId)return '<span style="font-size:.6rem;color:rgba(255,255,255,.2)">—</span>';
+  var rates=driverSettings&&driverSettings.routeRates?toArr(driverSettings.routeRates):[];
+  var isAir=d.isAir||d.deliveryMode==='air';
+  var pu=isAir?'Male (Air)':d.pickupLocation||'';
+  var de=isAir?d.airDestination||'':d.deliveryLocation||'';
+  var rm=rates.find(function(r){return (r.pickup||'').toLowerCase()===(pu||'').toLowerCase()&&(r.delivery||'').toLowerCase()===(de||'').toLowerCase();});
+  var earn=rm?Number(rm.rate):(driverSettings&&driverSettings.ratePerDelivery?Number(driverSettings.ratePerDelivery):50);
+  return '<div><span style="font-size:.62rem;color:#9b59b6;font-family:monospace"><i class="fas fa-truck-fast" style="margin-right:3px"></i>'+(d.assignedDriverName||'—')+'</span><br><span style="font-size:.6rem;color:#27ae60;font-family:monospace;font-weight:700">MVR '+earn+'</span></div>';
+}
+
 function renderTbl(tbId,data,compact=false){
   const tb=$(tbId);if(!data.length){tb.innerHTML=`<tr><td colspan="13" style="text-align:center;color:rgba(255,255,255,.26);padding:1.5rem;font-size:.76rem">No records found</td></tr>`;return}
   tb.innerHTML=data.map(d=>{
     const isManual=d.manualBoatEntry;const isAir=d.isAir||d.deliveryMode==='air';
     const routeCell=isAir?`<span style="font-size:.65rem">✈ Male→${d.airDestination||'—'}</span>`:`<span style="font-size:.65rem">${d.pickupLocation||''}→${d.deliveryLocation||''}</span>${isManual?' <span class="manual-flag"><i class="fas fa-pen"></i>Manual</span>':''}`;
-    const driverCell=d.assignedDriverId?`<span style="font-size:.62rem;color:#9b59b6;font-family:monospace"><i class="fas fa-truck-fast" style="margin-right:3px"></i>${d.assignedDriverName||'—'}</span>`:`<span style="font-size:.6rem;color:rgba(255,255,255,.2)">—</span>`;
+    const driverCell=getDriverCellHtml(d);
     // Full address for route display
     const pickupFull=(d.pickupLocation||'')+(d.pickupAddress&&d.pickupAddress!==d.pickupLocation?' — '+d.pickupAddress:'');
     const delivFull=(d.deliveryAddress||d.deliveryLocation||d.airDestination||'')+(d.deliveryAddress&&d.deliveryAddress!==(d.deliveryLocation||d.airDestination||'')&&d.deliveryLocation?' — '+d.deliveryLocation:'');
@@ -2016,6 +1992,7 @@ db.ref('drivers').on('value',snap=>{allDrivers=toArr(snap.val());loadDriversList
 db.ref('driverPayments').on('value',snap=>{allDriverPayments2=toArr(snap.val());loadDriverPayments();});
 db.ref('driverSettings').on('value',snap=>{
   const s=snap.val()||{ratePerDelivery:50,payCycle:'daily'};
+  driverSettings=s;
   if($('drvRateInput'))$('drvRateInput').value=s.ratePerDelivery||50;
   if($('drvPayCycle'))$('drvPayCycle').value=s.payCycle||'daily';
 });
@@ -2049,16 +2026,17 @@ function loadRouteRateDropdowns(){
 function renderRouteRates(){
   const el=$('routeRatesList');if(!el)return;
   if(!allRouteRates.length){el.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);padding:.5rem 0">No route-specific rates set. Using default rate for all routes.</div>';return;}
-  el.innerHTML=allRouteRates.map((r,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.06)">
-      <i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.75rem"></i>
-      <span style="font-size:.76rem;color:white;flex:1">${r.pickup}</span>
-      <i class="fas fa-arrow-right" style="color:rgba(255,255,255,.3);font-size:.65rem"></i>
-      <i class="fas fa-flag-checkered" style="color:#3498db;font-size:.75rem"></i>
-      <span style="font-size:.76rem;color:white;flex:1">${r.delivery}</span>
-      <span style="font-family:monospace;font-weight:800;color:#27ae60;font-size:.82rem">MVR ${r.rate}</span>
-      <button onclick="removeRouteRate(${i})" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:3px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>
-    </div>`).join('');
+  el.innerHTML=allRouteRates.map(function(r,i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:.55rem 0;border-bottom:1px solid rgba(255,255,255,.06)">'
+      +'<i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.75rem"></i>'
+      +'<span style="font-size:.76rem;color:white;flex:1">'+r.pickup+'</span>'
+      +'<i class="fas fa-arrow-right" style="color:rgba(255,255,255,.3);font-size:.65rem"></i>'
+      +'<i class="fas fa-flag-checkered" style="color:#3498db;font-size:.75rem"></i>'
+      +'<span style="font-size:.76rem;color:white;flex:1">'+r.delivery+'</span>'
+      +'<span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:.88rem">MVR '+r.rate+'</span>'
+      +'<button onclick="removeRouteRate('+i+')" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:3px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>'
+      +'</div>';
+  }).join('');
 }
 
 window.saveDriverEarnings=async function(){
@@ -2073,12 +2051,7 @@ window.saveDriverEarnings=async function(){
 };
 
 function loadEarningsPage(){
-  db.ref('driverSettings').once('value').then(snap=>{
-    const s=snap.val()||{ratePerDelivery:50,payCycle:'daily'};
-    if($('drvRateInput2'))$('drvRateInput2').value=s.ratePerDelivery||50;
-    if($('drvPayCycle2'))$('drvPayCycle2').value=s.payCycle||'daily';
-  });
-  // Populate dropdowns
+  // Populate dropdowns from pickup and delivery locations
   const pu=$('drvRoutePickup2');const de=$('drvRouteDest2');
   if(pu){
     const pickups=[...new Set([...allPickups.map(p=>p.name||p),...allRoutePrices.map(r=>r.pickup)].filter(Boolean))];
@@ -2097,20 +2070,20 @@ function renderRouteRates2(){
     el.innerHTML='<div style="font-size:.72rem;color:rgba(255,255,255,.3);padding:.5rem 0;text-align:center"><i class="fas fa-info-circle" style="margin-right:5px"></i>No route rates set — using default rate for all deliveries.</div>';
     return;
   }
-  el.innerHTML=`<div style="background:rgba(0,0,0,.2);border-radius:12px;overflow:hidden">
-    <div style="display:grid;grid-template-columns:1fr 1fr 80px 38px;gap:0;padding:.5rem .75rem;border-bottom:1px solid rgba(255,255,255,.06)">
-      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Pickup</span>
-      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Delivery</span>
-      <span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">Rate</span>
-      <span></span>
-    </div>`+
-  allRouteRates.map((r,i)=>`
-    <div style="display:grid;grid-template-columns:1fr 1fr 80px 38px;gap:0;align-items:center;padding:.6rem .75rem;border-bottom:1px solid rgba(255,255,255,.04)">
-      <span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.65rem;margin-right:4px"></i>${r.pickup}</span>
-      <span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-flag-checkered" style="color:#3498db;font-size:.65rem;margin-right:4px"></i>${r.delivery}</span>
-      <span style="font-family:monospace;font-weight:800;color:#27ae60;font-size:.82rem">MVR ${r.rate}</span>
-      <button onclick="removeRouteRate(${i})" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>
-    </div>`).join('')+'</div>';
+  el.innerHTML='<div style="background:rgba(0,0,0,.2);border-radius:12px;overflow:hidden">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 90px 38px;gap:0;padding:.5rem .75rem;border-bottom:1px solid rgba(255,255,255,.06)">'
+    +'<span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">PICKUP</span>'
+    +'<span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">DELIVERY</span>'
+    +'<span style="font-size:.6rem;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase">RATE</span>'
+    +'<span></span></div>'
+    +allRouteRates.map(function(r,i){
+      return '<div style="display:grid;grid-template-columns:1fr 1fr 90px 38px;gap:0;align-items:center;padding:.65rem .75rem;border-bottom:1px solid rgba(255,255,255,.04)">'
+        +'<span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-map-marker-alt" style="color:#e74c3c;font-size:.65rem;margin-right:4px"></i>'+r.pickup+'</span>'
+        +'<span style="font-size:.75rem;color:white;font-weight:600"><i class="fas fa-flag-checkered" style="color:#3498db;font-size:.65rem;margin-right:4px"></i>'+r.delivery+'</span>'
+        +'<span style="font-family:monospace;font-weight:900;color:#27ae60;font-size:.88rem">MVR '+r.rate+'</span>'
+        +'<button onclick="removeRouteRate('+i+')" style="background:rgba(231,76,60,.12);border:1px solid rgba(231,76,60,.2);color:#e74c3c;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.7rem"><i class="fas fa-times"></i></button>'
+        +'</div>';
+    }).join('')+'</div>';
 }
 
 window.addRouteRate2=async function(){
@@ -2122,7 +2095,7 @@ window.addRouteRate2=async function(){
   if(pickup===delivery){showToast('Pickup and delivery cannot be the same','err');return;}
   const existing=allRouteRates.find(r=>r.pickup===pickup&&r.delivery===delivery);
   if(existing){existing.rate=rate;}
-  else{allRouteRates.push({pickup,delivery,rate});}
+  else{allRouteRates.push({pickup,delivery,rate:Number(rate)});}
   await db.ref('driverSettings/routeRates').set(allRouteRates);
   if($('drvRouteRate2'))$('drvRouteRate2').value='';
   renderRouteRates2();
@@ -2139,7 +2112,7 @@ window.addRouteRate=async function(){
   if(pickup===delivery){showToast('Pickup and delivery cannot be the same','err');return;}
   const existing=allRouteRates.find(r=>r.pickup===pickup&&r.delivery===delivery);
   if(existing){existing.rate=rate;}
-  else{allRouteRates.push({pickup,delivery,rate});}
+  else{allRouteRates.push({pickup,delivery,rate:Number(rate)});}
   await db.ref('driverSettings/routeRates').set(allRouteRates);
   if($('drvRouteRate'))$('drvRouteRate').value='';
   showToast('Route rate saved ✅','ok');
@@ -2280,27 +2253,59 @@ window.viewDriver=function(id){
   const vsLabel=vs==='verified'?'✓ Verified':vs==='rejected'?'✗ Rejected':vs==='under_review'?'⏳ Under Review':'⏸ Pending';
 
   function docBox(label,src,key){
+    const expKey=key+'Expiry';
+    const expVal=d[expKey]||'';
+    const expDate=expVal?new Date(expVal):null;
+    const today=new Date();
+    const isExpired=expDate&&expDate<today;
+    const expiringSoon=expDate&&!isExpired&&(expDate-today)<30*24*3600*1000;
+    const expColor=isExpired?'#e74c3c':expiringSoon?'#f39c12':'#27ae60';
+    const expLabel=isExpired?'⚠️ EXPIRED':expiringSoon?'⚡ Expiring soon':'';
+    const showExpiry=(key!=='idDoc'&&key!=='idDocBack');
+
     if(src){
-      return `<div style="margin-bottom:.65rem">
+      return `<div style="margin-bottom:.7rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
           <span style="font-size:.65rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">${label}</span>
           <span style="font-size:.6rem;color:#27ae60;font-weight:700">✓ Uploaded</span>
         </div>
-        <div style="position:relative;cursor:pointer" onclick="viewFullImg('${src}','${label}')">
+        <div style="position:relative;cursor:pointer;margin-bottom:.4rem" onclick="viewFullImg('${src}','${label}')">
           <img src="${src}" style="width:100%;height:90px;object-fit:cover;border-radius:10px;border:1.5px solid rgba(39,174,96,.3)">
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);border-radius:10px;opacity:0;transition:.2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
-            <i class="fas fa-eye" style="color:white;font-size:1.4rem"></i>
-          </div>
           <div style="position:absolute;bottom:6px;right:8px;background:rgba(0,0,0,.6);border-radius:6px;padding:2px 7px;font-size:.6rem;color:white"><i class="fas fa-eye" style="margin-right:3px"></i>Tap to view</div>
+          ${isExpired?`<div style="position:absolute;top:6px;left:6px;background:#e74c3c;border-radius:6px;padding:2px 8px;font-size:.6rem;color:white;font-weight:700">⚠️ EXPIRED</div>`:''}
+          ${expiringSoon?`<div style="position:absolute;top:6px;left:6px;background:#f39c12;border-radius:6px;padding:2px 8px;font-size:.6rem;color:#1e2a3a;font-weight:700">⚡ Expiring Soon</div>`:''}
         </div>
+        <!-- Expiry date input (not for ID front/back - handled separately) -->
+        ${showExpiry?buildExpiryRow(d,expKey,label+' Expiry'):''}
       </div>`;
     }
-    return `<div style="margin-bottom:.65rem">
+    return `<div style="margin-bottom:.7rem">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
         <span style="font-size:.65rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">${label}</span>
         <span style="font-size:.6rem;color:#e74c3c;font-weight:700">✗ Not uploaded</span>
       </div>
       <div style="background:rgba(231,76,60,.07);border:1.5px dashed rgba(231,76,60,.3);border-radius:10px;padding:.65rem;text-align:center;font-size:.7rem;color:rgba(231,76,60,.7)"><i class="fas fa-exclamation-triangle" style="margin-right:5px"></i>Missing</div>
+    </div>`;
+  }
+
+  function buildExpiryRow(driver,expiryKey,label){
+    const expVal=driver[expiryKey]||'';
+    const expDate=expVal?new Date(expVal):null;
+    const today=new Date();
+    const isExpired=expDate&&expDate<today;
+    const soon=expDate&&!isExpired&&(expDate-today)<30*24*3600*1000;
+    const expColor=isExpired?'#e74c3c':soon?'#f39c12':'#27ae60';
+    const expLabel=isExpired?'⚠️ EXPIRED':soon?'⚡ Expiring soon':'';
+    const inputId='exp_'+driver.id+'_'+expiryKey;
+    return `<div style="background:rgba(0,0,0,.2);border-radius:9px;padding:.45rem .65rem;margin-top:.3rem">
+      <div style="font-size:.58rem;color:rgba(255,255,255,.3);margin-bottom:.3rem"><i class="fas fa-calendar-day" style="margin-right:4px;color:${expVal?expColor:'rgba(255,255,255,.3)'}"></i>${label}</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <input type="date" id="${inputId}" value="${expVal}"
+          style="flex:1;background:#1e2a3a;border:1px solid ${expVal?expColor+'55':'rgba(255,255,255,.1)'};border-radius:10px;color:${expVal?expColor:'rgba(255,255,255,.6)'};font-size:.75rem;font-family:monospace;outline:none;cursor:pointer;padding:6px 10px;font-weight:${expVal?'700':'400'}">
+        <button onclick="saveDocExpiry('${driver.id}','${expiryKey}',document.getElementById('${inputId}').value,this)"
+          style="background:#f39c12;color:#1e2a3a;border:none;border-radius:10px;padding:6px 14px;font-weight:800;font-size:.72rem;cursor:pointer;white-space:nowrap;font-family:inherit"><i class="fas fa-save" style="margin-right:4px"></i>Save</button>
+        ${expVal?`<span style="font-size:.6rem;font-weight:700;color:${expColor};white-space:nowrap">${expLabel}</span>`:''}
+      </div>
     </div>`;
   }
 
@@ -2324,11 +2329,26 @@ window.viewDriver=function(id){
     <!-- Documents -->
     <div style="background:#1a2535;border-radius:12px;padding:.8rem;margin-bottom:.65rem">
       <div style="font-size:.6rem;color:rgba(255,255,255,.3);margin-bottom:.65rem;text-transform:uppercase;letter-spacing:.8px;font-weight:700">📄 Documents — Tap to view full size</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${docBox('ID Front',d.idDoc,'idDoc')}
-        ${docBox('ID Back',d.idDocBack,'idDocBack')}
+      <!-- ID Front + Back side by side, ONE shared expiry -->
+      <div style="margin-bottom:.7rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+          <span style="font-size:.65rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase">National ID / Passport</span>
+          <span style="font-size:.6rem;color:${(d.idDoc||d.idDocBack)?'#27ae60':'#e74c3c'};font-weight:700">${(d.idDoc&&d.idDocBack)?'✓ Both uploaded':d.idDoc?'Front only':d.idDocBack?'Back only':'✗ Missing'}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.4rem">
+          ${d.idDoc?`<div style="position:relative;cursor:pointer;border-radius:10px;overflow:hidden;border:1.5px solid rgba(39,174,96,.3)" onclick="viewFullImg('${d.idDoc}','ID Front')">
+            <img src="${d.idDoc}" style="width:100%;height:80px;object-fit:cover;display:block">
+            <div style="position:absolute;bottom:4px;right:5px;background:rgba(0,0,0,.65);border-radius:5px;padding:1px 6px;font-size:.58rem;color:white"><i class="fas fa-eye" style="margin-right:2px"></i>Front</div>
+          </div>`:`<div style="height:80px;background:rgba(231,76,60,.07);border:1.5px dashed rgba(231,76,60,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:rgba(231,76,60,.6)">No Front</div>`}
+          ${d.idDocBack?`<div style="position:relative;cursor:pointer;border-radius:10px;overflow:hidden;border:1.5px solid rgba(39,174,96,.3)" onclick="viewFullImg('${d.idDocBack}','ID Back')">
+            <img src="${d.idDocBack}" style="width:100%;height:80px;object-fit:cover;display:block">
+            <div style="position:absolute;bottom:4px;right:5px;background:rgba(0,0,0,.65);border-radius:5px;padding:1px 6px;font-size:.58rem;color:white"><i class="fas fa-eye" style="margin-right:2px"></i>Back</div>
+          </div>`:`<div style="height:80px;background:rgba(231,76,60,.07);border:1.5px dashed rgba(231,76,60,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:rgba(231,76,60,.6)">No Back</div>`}
+        </div>
+        <!-- Single expiry date for ID -->
+        ${buildExpiryRow(d,'idExpiry','ID Expiry Date')}
       </div>
-      ${docBox('Driver\'s Licence',d.licenceDoc,'licenceDoc')}
+      ${docBox("Driver\'s Licence",d.licenceDoc,'licenceDoc')}
       ${docBox('Vehicle Registry',d.vehicleRegDoc,'vehicleRegDoc')}
     </div>
     <!-- Vehicle -->
@@ -2351,16 +2371,24 @@ window.viewDriver=function(id){
     </div>
     <!-- Resubmission Request -->
     <div style="background:rgba(231,76,60,.07);border:1.5px solid rgba(231,76,60,.2);border-radius:12px;padding:.8rem;margin-bottom:.75rem">
-      <div style="font-size:.7rem;font-weight:700;color:#e74c3c;margin-bottom:.55rem"><i class="fas fa-rotate-left" style="margin-right:5px"></i>Request Document Resubmission</div>
-      <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.55rem">Select which documents need to be resubmitted, then send SMS to driver.</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:.6rem">
-        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubID" value="ID / Passport"> ID / Passport</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubLic" value="Driver's Licence"> Licence</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubReg" value="Vehicle Registry"> Registry</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:.7rem;color:rgba(255,255,255,.6);cursor:pointer"><input type="checkbox" id="resubVeh" value="Vehicle Photo"> Vehicle Photo</label>
+      <div style="font-size:.7rem;font-weight:700;color:#e74c3c;margin-bottom:.6rem"><i class="fas fa-rotate-left" style="margin-right:5px"></i>Request Document Fix</div>
+      <div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:.65rem">Tap the document(s) that need to be re-uploaded. Driver will only see those flagged.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:.65rem">
+        <button id="resubBtnID" onclick="toggleResubDoc(this,'ID / Passport')" style="background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:12px;padding:9px 8px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:.2s">
+          <i class="fas fa-id-card" style="display:block;font-size:1rem;margin-bottom:3px;color:#3498db"></i>ID / Passport
+        </button>
+        <button id="resubBtnLic" onclick="toggleResubDoc(this,'Driver Licence')" style="background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:12px;padding:9px 8px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:.2s">
+          <i class="fas fa-car" style="display:block;font-size:1rem;margin-bottom:3px;color:#27ae60"></i>Driver Licence
+        </button>
+        <button id="resubBtnReg" onclick="toggleResubDoc(this,'Vehicle Registry')" style="background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:12px;padding:9px 8px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:.2s">
+          <i class="fas fa-file-alt" style="display:block;font-size:1rem;margin-bottom:3px;color:#e67e22"></i>Vehicle Registry
+        </button>
+        <button id="resubBtnVeh" onclick="toggleResubDoc(this,'Vehicle Photo')" style="background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:12px;padding:9px 8px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;text-align:center;transition:.2s">
+          <i class="fas fa-camera" style="display:block;font-size:1rem;margin-bottom:3px;color:#9b59b6"></i>Vehicle Photo
+        </button>
       </div>
-      <textarea id="resubNote" placeholder="Additional note (optional)..." style="width:100%;min-height:60px;padding:8px 12px;background:#1a2535;border:1px solid rgba(231,76,60,.25);border-radius:10px;color:white;font-size:.75rem;outline:none;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:.5rem"></textarea>
-      <button onclick="sendResubmitRequest('${d.id}')" style="width:100%;background:rgba(231,76,60,.15);border:1.5px solid rgba(231,76,60,.35);color:#e74c3c;border-radius:12px;padding:9px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.78rem"><i class="fas fa-sms" style="margin-right:6px"></i>Send Resubmission Request + SMS</button>
+      <textarea id="resubNote" placeholder="Additional note to driver (optional)..." style="width:100%;min-height:55px;padding:8px 12px;background:#1a2535;border:1px solid rgba(231,76,60,.2);border-radius:10px;color:white;font-size:.75rem;outline:none;font-family:inherit;resize:vertical;box-sizing:border-box;margin-bottom:.55rem"></textarea>
+      <button onclick="sendResubmitRequest('${d.id}')" style="width:100%;background:rgba(231,76,60,.15);border:1.5px solid rgba(231,76,60,.35);color:#e74c3c;border-radius:12px;padding:10px;font-weight:700;cursor:pointer;font-family:inherit;font-size:.78rem"><i class="fas fa-paper-plane" style="margin-right:6px"></i>Send Request + SMS to Driver</button>
     </div>
     <!-- Action buttons -->
     <div style="display:flex;gap:7px;flex-wrap:wrap">
@@ -2386,15 +2414,88 @@ window.viewFullImg=function(src,label){
 };
 
 /* ─── Send resubmission request ─── */
+window.saveDocExpiry=async function(driverId, expiryKey, value, btnEl){
+  if(!value){showToast('Please select a date first','err');return;}
+  // Show saving state on button
+  const btn=btnEl||event?.target?.closest('button');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-circle-notch fa-spin"></i>';}
+  try{
+    // Update local allDrivers first
+    const local=allDrivers.find(x=>String(x.id)===String(driverId));
+    if(local){
+      local[expiryKey]=value;
+      // Find index and update only that driver's expiry key to minimize listener impact
+      const idx=allDrivers.indexOf(local);
+      if(idx>=0) await db.ref('drivers/'+idx+'/'+expiryKey).set(value);
+      else await db.ref('drivers').set(allDrivers);
+    }
+    const expDate=new Date(value);
+    const today=new Date();
+    const isExpired=expDate<today;
+    const soon=(expDate-today)<30*24*3600*1000;
+    // Update button to show saved
+    if(btn){
+      btn.disabled=false;
+      btn.innerHTML='<i class="fas fa-check"></i> Saved';
+      btn.style.background='#27ae60';
+      setTimeout(()=>{btn.innerHTML='<i class="fas fa-save"></i> Save';btn.style.background='#f39c12';},2000);
+    }
+    if(isExpired){
+      // Auto-flag driver account — documents expired
+      if(local){
+        local.verificationStatus='docs_expired';
+        local.status='pending';
+        local.expiredDoc=expiryKey.replace('Expiry','');
+        await db.ref('drivers').set(allDrivers);
+        // Notify driver in-app
+        const docName=expiryKey.replace('Expiry','').replace('idDoc','ID / Passport').replace('licenceDoc','Driver Licence').replace('vehicleRegDoc','Vehicle Registry');
+        const notif={id:Date.now(),title:'⚠️ Document Expired',message:'Your '+docName+' has expired ('+new Date(value).toLocaleDateString('en-US',{day:'numeric',month:'short',year:'numeric'})+').\nPlease upload a new '+docName+' for re-verification.',timestamp:new Date().toISOString(),read:false};
+        const dn=toArr((await db.ref('driverNotifications/'+String(driverId)).once('value')).val());
+        dn.push(notif);await db.ref('driverNotifications/'+driverId).set(dn);
+        // SMS
+        db.ref('siteSettings/twilioConfig').once('value').then(async snap=>{
+          const cfg=snap.val()||{};
+          if(cfg.sid&&cfg.token&&local.contact){
+            const mvNum=local.contact.replace(/[^0-9]/g,'').startsWith('960')?local.contact.replace(/[^0-9]/g,''):'960'+local.contact.replace(/[^0-9]/g,'');
+            const sms='EasyCargoMV: Hi '+local.name+', your '+docName+' has expired. Please open the driver app and upload a new document for re-verification. Thank you.';
+            try{await callTwilioSMS(mvNum,sms);}catch(e){}
+          }
+        });
+      }
+      showToast('⚠️ Document EXPIRED — driver notified + SMS sent','err');
+    }
+    else if(soon) showToast('⚡ Expiring within 30 days — saved','ok');
+    else showToast('Expiry saved ✅','ok');
+  }catch(e){
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Save';}
+    showToast('Save failed: '+e.message,'err');
+  }
+};
+
+window.toggleResubDoc=function(btn,doc){
+  const active=btn.dataset.selected==='1';
+  if(active){
+    btn.dataset.selected='0';
+    btn.style.background='rgba(255,255,255,.05)';
+    btn.style.borderColor='rgba(255,255,255,.12)';
+    btn.style.color='rgba(255,255,255,.5)';
+  } else {
+    btn.dataset.selected='1';
+    btn.style.background='rgba(231,76,60,.15)';
+    btn.style.borderColor='rgba(231,76,60,.5)';
+    btn.style.color='#e74c3c';
+  }
+};
+
 window.sendResubmitRequest=async function(id){
   const d=allDrivers.find(x=>String(x.id)===String(id));if(!d)return;
   const docs=[];
-  if($('resubID')?.checked)docs.push('ID / Passport');
-  if($('resubLic')?.checked)docs.push("Driver's Licence");
-  if($('resubReg')?.checked)docs.push('Vehicle Registry');
-  if($('resubVeh')?.checked)docs.push('Vehicle Photo');
+  if($('resubBtnID')?.dataset.selected==='1') docs.push('ID / Passport');
+  if($('resubBtnLic')?.dataset.selected==='1') docs.push('Driver Licence');
+  if($('resubBtnReg')?.dataset.selected==='1') docs.push('Vehicle Registry');
+  if($('resubBtnVeh')?.dataset.selected==='1') docs.push('Vehicle Photo');
   const note=($('resubNote')?.value||'').trim();
-  if(!docs.length&&!note){showToast('Select documents or add a note','err');return;}
+  if(!docs.length&&!note){showToast('Tap a document or add a note first','err');return;}
   const reason=(docs.length?'Please resubmit: '+docs.join(', ')+'. ':'')+(note||'');
   // Save rejection reason so driver sees it in red
   d.rejectionReason=reason;
@@ -2699,9 +2800,29 @@ window.processAllPayments=async function(){
 /* ═══ ASSIGN DRIVER ═══ */
 let assignOrderId=null;
 
+window.broadcastAllOrders=async function(){
+  const paid=allD.filter(o=>o.paymentStatus==='paid'&&(!o.assignedDriverId||o.assignedDriverId===''||o.assignedDriverId===0)&&o.status!=='Delivered');
+  if(!paid.length){showToast('No unassigned paid orders to broadcast','info');return;}
+  const verifiedDrivers=allDrivers.filter(d=>d.verificationStatus==='verified'&&d.status==='active');
+  if(!verifiedDrivers.length){showToast('No verified drivers available','err');return;}
+  if(!confirm(`Broadcast ${paid.length} order(s) to ${verifiedDrivers.length} driver(s)?`))return;
+  // Save broadcast flag on orders
+  paid.forEach(o=>{o.broadcastedAt=new Date().toISOString();});
+  await db.ref('cargoDeliveries').set(allD);
+  // Send notification to each driver
+  for(const d of verifiedDrivers){
+    const notif={id:Date.now()+Math.random(),title:'🚚 New Orders Available!',message:`${paid.length} new order${paid.length>1?'s':''} available for pickup. Open the app to accept.`,timestamp:new Date().toISOString(),read:false};
+    const dn=toArr((await db.ref('driverNotifications/'+String(d.id)).once('value')).val());
+    dn.push(notif);
+    await db.ref('driverNotifications/'+d.id).set(dn);
+  }
+  sendTelegram(`📣 BROADCAST SENT\n${paid.length} orders → ${verifiedDrivers.length} drivers notified`);
+  showToast(`Broadcasted to ${verifiedDrivers.length} drivers ✅`,'ok');
+};
+
 window.openAssignDriver=function(orderId){
-  assignOrderId=orderId;
-  const order=allD.find(o=>o.id===orderId);if(!order)return;
+  assignOrderId=String(orderId);
+  const order=allD.find(o=>String(o.id)===String(orderId));if(!order)return;
 
   // Fill order info
   const isAir=order.isAir||order.deliveryMode==='air';
@@ -2725,31 +2846,34 @@ window.openAssignDriver=function(orderId){
     return;
   }
 
-  driverList.innerHTML=verifiedDrivers.map(d=>{
-    const isCurrentDriver=String(d.id)===String(order.assignedDriverId);
-    const activeOrders=allD.filter(o=>String(o.assignedDriverId)===String(d.id)&&o.status!=='Delivered').length;
-    return`<div style="display:flex;align-items:center;gap:10px;background:${isCurrentDriver?'rgba(155,89,182,.1)':'#1a2535'};border:1.5px solid ${isCurrentDriver?'rgba(155,89,182,.4)':'#2e3f55'};border-radius:14px;padding:.75rem;cursor:pointer;transition:.2s" onclick="confirmAssignDriver(${d.id},'${(d.name||'').replace(/'/g,'')}','${d.contact||''}')">
-      <div style="width:36px;height:36px;border-radius:50%;background:rgba(155,89,182,.15);border:2px solid rgba(155,89,182,.3);display:flex;align-items:center;justify-content:center;color:#9b59b6;font-size:.9rem;flex-shrink:0"><i class="fas fa-user"></i></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:700;color:white;font-size:.82rem">${d.name} ${isCurrentDriver?'<span style="color:#9b59b6;font-size:.6rem">(Current)</span>':''}</div>
-        <div style="font-size:.68rem;color:rgba(255,255,255,.4);font-family:monospace">+960${d.contact} · ${d.vehicle||'—'}</div>
-        <div style="font-size:.62rem;color:rgba(255,255,255,.28);margin-top:1px">${activeOrders} active order${activeOrders!==1?'s':''} · ${d.completedDeliveries||0} completed</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
-        <span style="background:rgba(39,174,96,.12);color:#27ae60;border:1px solid rgba(39,174,96,.2);font-size:.6rem;padding:2px 7px;border-radius:8px;font-weight:700">✓ Verified</span>
-        ${activeOrders===0?`<span style="background:rgba(39,174,96,.08);color:#27ae60;font-size:.58rem;padding:1px 6px;border-radius:6px">Free</span>`:`<span style="background:rgba(243,156,18,.08);color:#f39c12;font-size:.58rem;padding:1px 6px;border-radius:6px">Busy (${activeOrders})</span>`}
-      </div>
-    </div>`}).join('');
+  driverList.innerHTML=verifiedDrivers.map(function(d){
+    var isCurrentDriver=String(d.id)===String(order.assignedDriverId);
+    var activeOrders=allD.filter(function(o){return String(o.assignedDriverId)===String(d.id)&&o.status!=='Delivered';}).length;
+    return '<div style="display:flex;align-items:center;gap:10px;background:'+(isCurrentDriver?'rgba(155,89,182,.1)':'#1a2535')+';border:1.5px solid '+(isCurrentDriver?'rgba(155,89,182,.4)':'#2e3f55')+';border-radius:14px;padding:.75rem;cursor:pointer;transition:.2s" data-did="'+d.id+'" data-name="'+(d.name||'')+'" data-contact="'+(d.contact||'')+'" onclick="confirmAssignDriver(this.dataset.did,this.dataset.name,this.dataset.contact)">'
+      +'<div style="width:36px;height:36px;border-radius:50%;background:rgba(155,89,182,.15);border:2px solid rgba(155,89,182,.3);display:flex;align-items:center;justify-content:center;color:#9b59b6;font-size:.9rem;flex-shrink:0"><i class="fas fa-user"></i></div>'
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-weight:700;color:white;font-size:.82rem">'+d.name+(isCurrentDriver?' <span style="color:#9b59b6;font-size:.6rem">(Current)</span>':'')+'</div>'
+        +'<div style="font-size:.68rem;color:rgba(255,255,255,.4);font-family:monospace">+960'+d.contact+' &middot; '+(d.vehicle||'—')+'</div>'
+        +'<div style="font-size:.62rem;color:rgba(255,255,255,.28);margin-top:1px">'+activeOrders+' active order'+(activeOrders!==1?'s':'')+' &middot; '+(d.completedDeliveries||0)+' completed</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">'
+        +'<span style="background:rgba(39,174,96,.12);color:#27ae60;border:1px solid rgba(39,174,96,.2);font-size:.6rem;padding:2px 7px;border-radius:8px;font-weight:700">✓ Verified</span>'
+        +(activeOrders===0
+          ?'<span style="background:rgba(39,174,96,.08);color:#27ae60;font-size:.58rem;padding:1px 6px;border-radius:6px">Free</span>'
+          :'<span style="background:rgba(243,156,18,.08);color:#f39c12;font-size:.58rem;padding:1px 6px;border-radius:6px">Busy ('+activeOrders+')</span>')
+      +'</div>'
+    +'</div>';
+  }).join('');
 
   $('assignMod').classList.add('show');
 };
 
 window.confirmAssignDriver=async function(driverId,driverName,driverContact){
-  const order=allD.find(o=>o.id===assignOrderId);if(!order)return;
+  const order=allD.find(o=>String(o.id)===String(assignOrderId));if(!order)return;
   const action=order.assignedDriverId?'Re-assign':'Assign';
   if(!confirm(`${action} order ${order.referenceNumber} to ${driverName}?`))return;
 
-  order.assignedDriverId=driverId;
+  order.assignedDriverId=Number(driverId)||driverId;
   order.assignedDriverName=driverName;
   order.assignedDriverContact=driverContact;
   order.assignedAt=new Date().toISOString();
@@ -2759,7 +2883,7 @@ window.confirmAssignDriver=async function(driverId,driverName,driverContact){
 
   // Notify driver via Firebase notification
   const notif={id:Date.now(),title:'📦 New Order Assigned!',message:`You have been assigned order ${order.referenceNumber}.\nPickup: ${order.pickupLocation||'Male (Air)'}\nDeliver to: ${order.deliveryLocation||order.airDestination||'—'}\nCustomer: ${order.customerName}`,timestamp:new Date().toISOString(),read:false};
-  const driverNotifs=toArr((await db.ref('driverNotifications/'+driverId).once('value')).val());
+  const driverNotifs=toArr((await db.ref('driverNotifications/'+String(driverId)).once('value')).val());
   driverNotifs.push(notif);
   await db.ref('driverNotifications/'+driverId).set(driverNotifs);
 
@@ -2771,7 +2895,7 @@ window.confirmAssignDriver=async function(driverId,driverName,driverContact){
 };
 
 window.unassignDriver=async function(){
-  const order=allD.find(o=>o.id===assignOrderId);if(!order)return;
+  const order=allD.find(o=>String(o.id)===String(assignOrderId));if(!order)return;
   if(!confirm('Remove driver assignment from this order?'))return;
   const dId=order.assignedDriverId;
   delete order.assignedDriverId;
